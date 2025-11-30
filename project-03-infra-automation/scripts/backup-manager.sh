@@ -297,7 +297,22 @@ cmd_incremental() {
 
     # Create snapshot file if doesn't exist
     if [[ ! -f "$snapshot_file" ]]; then
-        touch -t "$(date -d '1 day ago' +%Y%m%d%H%M)" "$snapshot_file"
+        # Set snapshot timestamp to match the full backup's mtime
+        # This ensures the incremental includes everything since the full backup
+        local backup_timestamp
+        if [[ -f "$latest_full" ]]; then
+            # Get mtime of the full backup in touch -t format (YYYYMMDDhhmm)
+            backup_timestamp=$(stat -c %Y "$latest_full" 2>/dev/null || stat -f %m "$latest_full" 2>/dev/null)
+            if [[ -n "$backup_timestamp" ]]; then
+                touch -d "@$backup_timestamp" "$snapshot_file"
+            else
+                # Fallback to epoch if stat fails
+                touch -t 197001010000 "$snapshot_file"
+            fi
+        else
+            # Fallback to epoch if no full backup file
+            touch -t 197001010000 "$snapshot_file"
+        fi
     fi
 
     # Create incremental tar
