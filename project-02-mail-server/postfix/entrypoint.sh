@@ -98,7 +98,7 @@ test_mysql_connection() {
     while [[ $attempt -le $max_attempts ]]; do
         log INFO "MySQL connection attempt $attempt/$max_attempts"
 
-        if mysqladmin ping -h"${MYSQL_HOST}" -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" --silent 2>/dev/null; then
+        if MYSQL_PWD="${MYSQL_PASSWORD}" mysqladmin ping -h"${MYSQL_HOST}" -u"${MYSQL_USER}" --silent 2>/dev/null; then
             log INFO "MySQL connection successful"
             return 0
         fi

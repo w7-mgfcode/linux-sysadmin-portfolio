@@ -104,7 +104,7 @@ test_mysql_connectivity() {
     # Get MySQL password from environment or docker-compose
     local mysql_password="${MYSQL_ROOT_PASSWORD:-mail_root_changeme}"
 
-    if docker compose exec -T mysql mysqladmin ping -p"${mysql_password}" --silent 2>/dev/null; then
+    if docker compose exec -T -e MYSQL_PWD="${mysql_password}" mysql mysqladmin ping --silent 2>/dev/null; then
         test_pass "MySQL is responding to ping"
         return 0
     else
@@ -127,7 +127,7 @@ test_mysql_schema() {
     local all_tables_exist=true
 
     for table in "${tables[@]}"; do
-        if docker compose exec -T mysql mysql -u"${mysql_user}" -p"${mysql_password}" "${mysql_database}" \
+        if docker compose exec -T -e MYSQL_PWD="${mysql_password}" mysql mysql -u"${mysql_user}" "${mysql_database}" \
             -e "DESCRIBE ${table};" > /dev/null 2>&1; then
             test_pass "Table ${table} exists"
         else

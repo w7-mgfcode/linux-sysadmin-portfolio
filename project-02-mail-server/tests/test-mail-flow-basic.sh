@@ -303,7 +303,7 @@ test_user_authentication() {
 
     # Check if test user exists
     local test_user_count
-    test_user_count=$(docker compose exec -T mysql mysql -u"${mysql_user}" -p"${mysql_password}" "${mysql_database}" \
+    test_user_count=$(docker compose exec -T -e MYSQL_PWD="${mysql_password}" mysql mysql -u"${mysql_user}" "${mysql_database}" \
         -e "SELECT COUNT(*) FROM virtual_users WHERE email='test@example.com';" 2>/dev/null | tail -n 1 || echo "0")
 
     if [[ "$test_user_count" -gt 0 ]]; then
