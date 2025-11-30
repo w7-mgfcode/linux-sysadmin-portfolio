@@ -48,6 +48,18 @@ readonly INVENTORY_FORMAT="${INVENTORY_FORMAT:-json}"
 declare -A INVENTORY
 
 #===============================================================================
+# Helper Functions
+#===============================================================================
+
+# Escape special characters for sed replacement strings
+# Escapes: / & \ and newlines
+sed_escape() {
+    local string="$1"
+    # Escape backslashes first, then forward slashes, then ampersands
+    printf '%s' "$string" | sed 's/[\/&\]/\\&/g'
+}
+
+#===============================================================================
 # Hardware Inventory
 #===============================================================================
 
@@ -614,26 +626,65 @@ generate_html_report() {
 </html>
 EOF_HTML
 
-    # Replace placeholders
-    sed -i "s/TIMESTAMP_PLACEHOLDER/$(timestamp_human)/g" "$output_file"
-    sed -i "s/HOSTNAME_PLACEHOLDER/${INVENTORY[hostname]:-unknown}/g" "$output_file"
-    sed -i "s/IP_PLACEHOLDER/${INVENTORY[primary_ip]:-unknown}/g" "$output_file"
-    sed -i "s/UPTIME_PLACEHOLDER/${INVENTORY[uptime_human]:-unknown}/g" "$output_file"
-    sed -i "s/CPU_MODEL_PLACEHOLDER/${INVENTORY[cpu_model]:-unknown}/g" "$output_file"
-    sed -i "s/CPU_THREADS_PLACEHOLDER/${INVENTORY[cpu_threads]:-0}/g" "$output_file"
-    sed -i "s/MEMORY_PLACEHOLDER/${INVENTORY[mem_total_gb]:-0}/g" "$output_file"
-    sed -i "s/DISK_COUNT_PLACEHOLDER/${INVENTORY[disk_count]:-0}/g" "$output_file"
-    sed -i "s/OS_NAME_PLACEHOLDER/${INVENTORY[os_name]:-unknown}/g" "$output_file"
-    sed -i "s/OS_VERSION_PLACEHOLDER/${INVENTORY[os_version]:-unknown}/g" "$output_file"
-    sed -i "s/KERNEL_PLACEHOLDER/${INVENTORY[kernel_version]:-unknown}/g" "$output_file"
-    sed -i "s/INIT_PLACEHOLDER/${INVENTORY[init_system]:-unknown}/g" "$output_file"
-    sed -i "s/PKG_MGR_PLACEHOLDER/${INVENTORY[package_manager]:-unknown}/g" "$output_file"
-    sed -i "s/PKG_COUNT_PLACEHOLDER/${INVENTORY[package_count]:-0}/g" "$output_file"
-    sed -i "s/SERVICE_COUNT_PLACEHOLDER/${INVENTORY[service_count]:-0}/g" "$output_file"
-    sed -i "s/FIREWALL_PLACEHOLDER/${INVENTORY[firewall_status]:-unknown}/g" "$output_file"
-    sed -i "s/SELINUX_PLACEHOLDER/${INVENTORY[selinux_status]:-not-installed}/g" "$output_file"
-    sed -i "s/SSH_PORT_PLACEHOLDER/${INVENTORY[ssh_port]:-22}/g" "$output_file"
-    sed -i "s/USER_COUNT_PLACEHOLDER/${INVENTORY[user_count]:-0}/g" "$output_file"
+    # Replace placeholders with escaped values (safe against special chars)
+    local escaped_val
+
+    escaped_val=$(sed_escape "$(timestamp_human)")
+    sed -i "s|TIMESTAMP_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[hostname]:-unknown}")
+    sed -i "s|HOSTNAME_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[primary_ip]:-unknown}")
+    sed -i "s|IP_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[uptime_human]:-unknown}")
+    sed -i "s|UPTIME_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[cpu_model]:-unknown}")
+    sed -i "s|CPU_MODEL_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[cpu_threads]:-0}")
+    sed -i "s|CPU_THREADS_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[mem_total_gb]:-0}")
+    sed -i "s|MEMORY_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[disk_count]:-0}")
+    sed -i "s|DISK_COUNT_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[os_name]:-unknown}")
+    sed -i "s|OS_NAME_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[os_version]:-unknown}")
+    sed -i "s|OS_VERSION_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[kernel_version]:-unknown}")
+    sed -i "s|KERNEL_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[init_system]:-unknown}")
+    sed -i "s|INIT_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[package_manager]:-unknown}")
+    sed -i "s|PKG_MGR_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[package_count]:-0}")
+    sed -i "s|PKG_COUNT_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[service_count]:-0}")
+    sed -i "s|SERVICE_COUNT_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[firewall_status]:-unknown}")
+    sed -i "s|FIREWALL_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[selinux_status]:-not-installed}")
+    sed -i "s|SELINUX_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[ssh_port]:-22}")
+    sed -i "s|SSH_PORT_PLACEHOLDER|${escaped_val}|g" "$output_file"
+
+    escaped_val=$(sed_escape "${INVENTORY[user_count]:-0}")
+    sed -i "s|USER_COUNT_PLACEHOLDER|${escaped_val}|g" "$output_file"
 
     log_success "HTML report saved to: $output_file"
 }
