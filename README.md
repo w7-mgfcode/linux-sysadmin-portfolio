@@ -147,9 +147,9 @@ docker compose logs -f
 
 ## Contact | Kapcsolat
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
-- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
+- GitHub: [@w7-mgfcode](https://github.com/w7-mgfcode)
+- Email: gabor@w7-7.net
+- LinkedIn: [w7-mgfcode](https://linkedin.com/in/saborobag)
 
 ---
 
