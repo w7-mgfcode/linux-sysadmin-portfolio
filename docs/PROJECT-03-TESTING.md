@@ -28,10 +28,10 @@ Ez a dokumentum leírja az Infrastruktúra Automatizálási Eszköztár (3. Proj
 | Service | Base Image | Purpose (EN) | Cél (HU) |
 |---------|------------|--------------|----------|
 | **debian-target** | debian:bookworm-slim | Primary test target | Elsődleges teszt célpont |
-| **alpine-target** | alpine:3.19 | Minimal environment testing | Minimális környezet tesztelés |
-| **ubuntu-target** | ubuntu:24.04 | Enterprise environment testing | Vállalati környezet tesztelés |
+| **alpine-target** | alpine:3.19 | Minimal environment testing | Minimális környezet tesztelése |
+| **ubuntu-target** | ubuntu:24.04 | Enterprise environment testing | Vállalati környezet tesztelése |
 | **test-webserver** | nginx:alpine | Network diagnostics target | Hálózati diagnosztikai célpont |
-| **test-dns** | coredns/coredns | DNS resolution testing | DNS feloldás tesztelés |
+| **test-dns** | coredns/coredns | DNS resolution testing | DNS feloldás tesztelése |
 
 ### Network Configuration | Hálózati Konfiguráció
 
@@ -99,7 +99,7 @@ docker compose up -d
 # Várj amíg az állapot ellenőrzések átmennek
 sleep 30
 
-# Ellenőrizd a konténer státuszt
+# Ellenőrizd a konténer státuszát
 docker compose ps
 
 # Futtass gyors tesztet Debianon
@@ -408,7 +408,11 @@ docker exec infra-ubuntu-target bash -c "/scripts/$SCRIPT $COMMAND"
 
 ### Latest Test Run | Legutóbbi Teszt Futás
 
-**Date | Dátum:** 2025-11-30
+**Date | Dátum:** 2025-11-30 *(Example output from this test run)*
+
+**Note:** The following results are example outputs from a specific test run. Actual values (RTT, timestamps, container IDs, etc.) will vary based on your environment and test execution time.
+
+**Megjegyzés:** Az alábbi eredmények egy konkrét teszt futás példa kimenetei. A tényleges értékek (RTT, időbélyegek, konténer azonosítók, stb.) a környezettől és a teszt végrehajtási időtől függően változnak.
 
 #### Container Health Status | Konténer Állapot
 

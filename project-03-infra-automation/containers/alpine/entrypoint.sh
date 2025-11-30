@@ -26,5 +26,9 @@ echo "Alpine target container ready"
 echo "Hostname: $(hostname)"
 echo "IP Address: $(hostname -i)"
 
-# Keep container running
-exec tail -f /dev/null
+# Keep container running (allow custom commands via docker run)
+if [ "$#" -gt 0 ]; then
+  exec "$@"
+else
+  exec tail -f /dev/null
+fi

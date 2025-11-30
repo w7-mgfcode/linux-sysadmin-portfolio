@@ -13,11 +13,14 @@ mkdir -p /run/sshd /var/reports /var/backups /var/log/infra
 echo "Starting SSH daemon..."
 /usr/sbin/sshd
 
-# Start rsyslog (clean start)
+# Start rsyslog (clean start if needed)
 echo "Starting rsyslog..."
-rm -f /run/rsyslogd.pid 2>/dev/null || true
-pkill -9 rsyslogd 2>/dev/null || true
-sleep 1
+if [ -f /run/rsyslogd.pid ] || pgrep rsyslogd >/dev/null 2>&1; then
+    echo "Cleaning up existing rsyslog instance..."
+    pkill -9 rsyslogd 2>/dev/null || true
+    rm -f /run/rsyslogd.pid 2>/dev/null || true
+    sleep 1
+fi
 rsyslogd 2>/dev/null || echo "rsyslog start skipped (may already be running)"
 
 # Create PID file for health check
@@ -27,5 +30,9 @@ echo "Debian target container ready"
 echo "Hostname: $(hostname)"
 echo "IP Address: $(hostname -I)"
 
-# Keep container running
-exec tail -f /dev/null
+# Keep container running (allow custom commands via docker run)
+if [ "$#" -gt 0 ]; then
+  exec "$@"
+else
+  exec tail -f /dev/null
+fi
