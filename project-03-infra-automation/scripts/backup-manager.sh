@@ -196,6 +196,7 @@ cmd_full() {
 
     # Create tar archive
     log_info "Creating archive..."
+    ensure_directory "$REPORT_DIR"
     if tar -cf "$archive_path" -C "$(dirname "$source")" "$(basename "$source")" 2>&1 | tee -a "$REPORT_DIR/backup.log"; then
         log_success "Archive created: $archive_path"
     else
