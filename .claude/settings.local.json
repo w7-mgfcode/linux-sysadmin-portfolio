@@ -17,7 +17,13 @@
       "Bash(docker logs:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(docker run --rm -v mail-queue:/var/spool/postfix project-02-mail-server-postfix bash -c \"postfix check ; echo Exit code: $?\")",
+      "Bash(./scripts/validate-environment.sh:*)",
+      "Bash(./tests/health-checks.sh:*)",
+      "Bash(gh pr view:*)",
+      "Bash(shellcheck:*)",
+      "Bash(docker ps:*)"
     ],
     "deny": [],
     "ask": []

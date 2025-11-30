@@ -29,7 +29,7 @@ services:
       - test-net
     command: /bin/bash /entrypoint.sh
     healthcheck:
-      test: ["CMD", "test", "-f", "/var/run/ssh/sshd.pid"]
+      test: ["CMD", "test", "-f", "/run/sshd.pid"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -89,7 +89,7 @@ services:
       - test-net
     command: /bin/bash /entrypoint.sh
     healthcheck:
-      test: ["CMD", "test", "-f", "/var/run/sshd.pid"]
+      test: ["CMD", "test", "-f", "/run/sshd.pid"]
       interval: 30s
       timeout: 10s
       retries: 3

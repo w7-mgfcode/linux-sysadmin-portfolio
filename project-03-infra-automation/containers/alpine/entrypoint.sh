@@ -4,7 +4,7 @@
 # Starts SSH daemon and keeps container running
 #===============================================================================
 
-set -e
+set -eu
 
 # Create required directories
 mkdir -p /var/run/sshd /run/sshd /var/reports /var/backups /var/log/infra
@@ -26,5 +26,9 @@ echo "Alpine target container ready"
 echo "Hostname: $(hostname)"
 echo "IP Address: $(hostname -i)"
 
-# Keep container running
-exec "$@"
+# Keep container running (allow custom commands via docker run)
+if [ "$#" -gt 0 ]; then
+  exec "$@"
+else
+  exec tail -f /dev/null
+fi
