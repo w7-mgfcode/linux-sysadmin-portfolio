@@ -483,8 +483,9 @@ test_integration_backup_and_verify() {
     local integration_script=$(cat << 'EOF'
 mkdir -p /tmp/integration-test
 echo "integration test" > /tmp/integration-test/data.txt
-BACKUP_FILE=$(/scripts/backup-manager.sh full /tmp/integration-test /tmp/integration-backup 2>&1 | grep "Backup created:" | awk '{print $NF}')
-if [[ -n "$BACKUP_FILE" ]]; then
+BACKUP_NAME=$(/scripts/backup-manager.sh full /tmp/integration-test /tmp/integration-backup 2>&1 | grep "Backup completed:" | awk '{print $NF}')
+if [[ -n "$BACKUP_NAME" ]]; then
+    BACKUP_FILE="/tmp/integration-backup/$BACKUP_NAME"
     /scripts/backup-manager.sh verify "$BACKUP_FILE"
 else
     exit 1
