@@ -384,11 +384,23 @@ EOF
 
     # Log to syslog if available
     if command -v logger &>/dev/null; then
-        logger -t service-watchdog -p daemon."$severity" "$service_name: $message"
+        # Map severity to standard syslog levels
+        local syslog_severity="info"
+        case "$severity" in
+            critical) syslog_severity="crit" ;;
+            error|err) syslog_severity="err" ;;
+            warning|warn) syslog_severity="warning" ;;
+            info|debug) syslog_severity="$severity" ;;
+        esac
+
+        logger -t service-watchdog -p "daemon.$syslog_severity" "$service_name: $message" \
+            || log_debug "logger delivery failed"
     fi
 
     # Append to alert log
-    echo "$alert_json" >> "/var/log/infra/service-watchdog-alerts.log"
+    ensure_directory "/var/log/infra"
+    echo "$alert_json" >> "/var/log/infra/service-watchdog-alerts.log" 2>/dev/null \
+        || log_debug "Failed to write alert log"
 }
 
 #===============================================================================
