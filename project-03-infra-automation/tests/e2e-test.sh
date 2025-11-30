@@ -503,8 +503,11 @@ run_all_tests() {
     log_info "Starting comprehensive test suite..."
     echo ""
 
-    # Estimate total tests
-    local total_tests=40
+    # Total test count (update when adding/removing tests)
+    # Count all run_test calls below: grep '^\s*run_test' tests/e2e-test.sh | wc -l
+    # Current: 3 (common) + 6 (hardening) + 7 (network) + 4 (watchdog) +
+    #          6 (backup) + 6 (log-rotation) + 6 (inventory) + 3 (multi-os) + 2 (integration) = 43
+    local total_tests=43
     tap_plan $total_tests
 
     # Common library tests
