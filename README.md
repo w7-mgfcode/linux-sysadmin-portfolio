@@ -36,8 +36,8 @@ Ez a portfólió gyakorlati Linux rendszergazdai készségeket mutat be három p
 | # | Project | Status | Description (EN) | Leírás (HU) |
 |---|---------|--------|------------------|-------------|
 | 1 | [LAMP Monitoring](./project-01-lamp-monitoring/) | ✅ **Complete** | Production LAMP stack with log analysis | Produkciós LAMP stack naplóelemzéssel |
-| 2 | [Mail Server](./project-02-mail-server/) | 📋 Planned | Complete Postfix/Dovecot mail system | Teljes Postfix/Dovecot levelező rendszer |
-| 3 | [Automation Toolkit](./project-03-infra-automation/) | 📋 Planned | Server hardening & maintenance scripts | Szerver keményítő és karbantartó scriptek |
+| 2 | [Mail Server](./project-02-mail-server/) | ✅ **Complete** | Complete Postfix/Dovecot mail system with monitoring | Teljes Postfix/Dovecot levelező rendszer monitoringgal |
+| 3 | [Automation Toolkit](./project-03-infra-automation/) | ✅ **Complete** | Advanced automation scripts for security & maintenance | Haladó automatizálási scriptek biztonsághoz és karbantartáshoz |
 
 ---
 
@@ -112,27 +112,77 @@ docker compose logs -f
 
 **[View Full Documentation →](./project-01-lamp-monitoring/README.md)**
 
-### Project 2: Containerized Mail Server Stack
+### Project 2: Production Mail Server Stack ✅ **COMPLETE**
 
-**EN:** A complete email infrastructure with Postfix, Dovecot, and Roundcube webmail.
+**EN:** A fully containerized, production-ready mail server stack featuring Postfix (SMTP), Dovecot (IMAP/POP3), SpamAssassin, and Roundcube webmail. Includes comprehensive automation scripts with daemon mode monitoring, interactive dashboard, SSL/TLS encryption, MySQL-backed virtual users, and complete test suite. Demonstrates advanced Bash scripting (1,949 lines), protocol implementation (SMTP/IMAP), and enterprise-level system administration.
 
-**HU:** Teljes körű email infrastruktúra Postfix, Dovecot és Roundcube webmail komponensekkel.
+**HU:** Teljesen konténerizált, produkció-kész levelezőszerver stack Postfix (SMTP), Dovecot (IMAP/POP3), SpamAssassin és Roundcube webmail komponensekkel. Tartalmaz átfogó automatizálási szkripteket daemon módú monitoringgal, interaktív vezérlőpultot, SSL/TLS titkosítást, MySQL-alapú virtuális felhasználókat és teljes tesztcsomagot. Bemutatja a haladó Bash scriptелést (1,949 sor), protokoll implementációt (SMTP/IMAP) és vállalati szintű rendszeradminisztrációt.
 
-**Key Scripts:**
-- `mail-queue-monitor.sh` - Queue analysis daemon
-- `user-management.sh` - Virtual mailbox automation
-- `spam-report.sh` - Spam statistics
-
-### Project 3: Infrastructure Automation Toolkit
-
-**EN:** A comprehensive collection of battle-tested Bash scripts for server hardening and maintenance.
-
-**HU:** Átfogó gyűjtemény bevált Bash scriptekből szerverkeményítéshez és karbantartáshoz.
+**Implementation Stats:**
+- 48 files created
+- 1,949 lines of Bash scripts (7 scripts)
+- 937 lines of test automation (2 scripts)
+- 979 lines of dashboard code (PHP, CSS, JS)
+- 2,564 lines of documentation (3 comprehensive docs)
+- 7 Docker services (Postfix, Dovecot, MySQL, SpamAssassin, Roundcube, Dashboard, SSL init)
+- Production-ready with health checks and network isolation
 
 **Key Scripts:**
-- `server-hardening.sh` - Automated security baseline
-- `network-diagnostics.sh` - Network troubleshooting
-- `service-watchdog.sh` - Service monitoring daemon
+- `mail-queue-monitor.sh` (460 lines) - ⭐ PRIMARY SHOWCASE - Daemon mode, signal handling, PID management, threshold alerting
+- `user-management.sh` (450 lines) - Git-style CLI for domain/user/alias management with MySQL integration
+- `backup.sh` (336 lines) - Incremental backups with SHA256 verification and retention policies
+- `spam-report.sh` (320 lines) - SpamAssassin statistics with ASCII bar charts
+- `generate-ssl.sh` (222 lines) - Self-signed certificate generation with SAN
+- `test-mail-flow.sh` (383 lines) - End-to-end SMTP/IMAP protocol testing
+- `lib/common.sh` (147 lines) - Shared utility library
+
+**Key Features:**
+- MySQL-backed virtual users with bcrypt password hashing
+- SSL/TLS encryption (self-signed, Let's Encrypt ready)
+- Spam filtering with Bayes learning
+- Real-time monitoring dashboard (PHP 8.2)
+- Comprehensive test suite (e2e + mail flow)
+- Network isolation (backend internal only)
+- Auto-refresh dashboard with keyboard shortcuts
+
+**[View Full Documentation →](./project-02-mail-server/README.md)**
+
+### Project 3: Infrastructure Automation Toolkit ✅ **COMPLETE**
+
+**EN:** A production-grade infrastructure automation toolkit featuring six sophisticated Bash scripts for security hardening, network diagnostics, service monitoring, backup management, log rotation, and system inventory. Includes comprehensive test suite (40+ tests), Docker-based multi-OS validation (Debian, Alpine, Ubuntu), and extensive documentation (5,989 lines). Demonstrates advanced system administration, daemon programming, and enterprise-level automation.
+
+**HU:** Produkció-szintű infrastruktúra automatizálási eszköztár hat kifinomult Bash scripttel biztonsági keményítéshez, hálózati diagnosztikához, szolgáltatás monitorozáshoz, biztonsági mentés kezeléshez, log rotációhoz és rendszer leltárhoz. Tartalmaz átfogó tesztcsomagot (40+ teszt), Docker-alapú multi-OS validációt (Debian, Alpine, Ubuntu) és kiterjedt dokumentációt (5,989 sor). Bemutatja a haladó rendszeradminisztrációt, daemon programozást és vállalati szintű automatizálást.
+
+**Implementation Stats:**
+- 60+ files created
+- 4,400+ lines of Bash scripts (6 scripts + 1 library)
+- 691 lines of test automation (40+ test cases)
+- 5,989 lines of documentation (4 comprehensive docs - bilingual)
+- 5 Docker services (Debian, Alpine, Ubuntu targets + Nginx + CoreDNS)
+- Production-ready with TAP test output and multi-OS support
+
+**Key Scripts:**
+- `server-hardening.sh` (781 lines) - ⭐ PRIMARY SHOWCASE - 5 security modules (SSH, kernel, firewall, permissions, users), idempotent, dry-run mode
+- `network-diagnostics.sh` (588 lines) - Git-style subcommands for connectivity, DNS, routes, ports, scanning with ASCII tables
+- `service-watchdog.sh` (647 lines) - Daemon mode monitoring with PID management, signal handling, exponential backoff, webhook alerts
+- `backup-manager.sh` (619 lines) - Full/incremental backups, SHA256 verification, GFS retention, multiple compression (gzip/xz/zstd)
+- `log-rotation.sh` (773 lines) - Size/age-based rotation, deferred compression, service signaling, postrotate hooks
+- `system-inventory.sh` (863 lines) - Hardware/software/security inventory, JSON/HTML reports, change detection
+- `lib/common.sh` (412 lines) - Shared utility library with OS detection, logging, JSON, validation
+- `e2e-test.sh` (691 lines) - Comprehensive test suite with TAP output, Docker orchestration
+
+**Key Features:**
+- Multi-OS compatibility (Debian 12, Alpine 3.19, Ubuntu 24.04)
+- Idempotent operations (safe to run multiple times)
+- JSON structured output for all scripts
+- Comprehensive error handling and validation
+- Docker-based isolated testing environment
+- Bilingual documentation (English/Hungarian)
+- Cross-platform tool detection and fallback
+- Production-ready security hardening
+- Automated service recovery with restart limits
+
+**[View Full Documentation →](./project-03-infra-automation/README.md)**
 
 ---
 
