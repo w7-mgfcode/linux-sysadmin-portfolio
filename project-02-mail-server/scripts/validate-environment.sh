@@ -300,7 +300,7 @@ check_compose_syntax() {
     log INFO "Checking docker-compose.yml syntax..."
 
     local output
-    if ! output=$(docker compose config 2>&1 >/dev/null); then
+    if ! output=$(docker compose config 2>&1); then
         error "docker-compose.yml has syntax errors:"
         error "$output"
         return 1
