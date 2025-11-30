@@ -92,7 +92,7 @@ test_container_health() {
         fi
     done
 
-    return $([ "$all_healthy" = true ] && echo 0 || echo 1)
+    return "$([ "$all_healthy" = true ] && echo 0 || echo 1)"
 }
 
 #------------------------------------------------------------------------------
@@ -136,7 +136,7 @@ test_mysql_schema() {
         fi
     done
 
-    return $([ "$all_tables_exist" = true ] && echo 0 || echo 1)
+    return "$([ "$all_tables_exist" = true ] && echo 0 || echo 1)"
 }
 
 #------------------------------------------------------------------------------
@@ -172,7 +172,7 @@ test_postfix_ports() {
         fi
     done
 
-    return $([ "$all_listening" = true ] && echo 0 || echo 1)
+    return "$([ "$all_listening" = true ] && echo 0 || echo 1)"
 }
 
 #------------------------------------------------------------------------------
@@ -223,7 +223,7 @@ test_dovecot_ports() {
         fi
     done
 
-    return $([ "$all_listening" = true ] && echo 0 || echo 1)
+    return "$([ "$all_listening" = true ] && echo 0 || echo 1)"
 }
 
 #------------------------------------------------------------------------------
@@ -264,7 +264,7 @@ test_ssl_certificates() {
         all_certs_present=false
     fi
 
-    return $([ "$all_certs_present" = true ] && echo 0 || echo 1)
+    return "$([ "$all_certs_present" = true ] && echo 0 || echo 1)"
 }
 
 #------------------------------------------------------------------------------
@@ -339,7 +339,7 @@ test_volume_mounts() {
         all_volumes_mounted=false
     fi
 
-    return $([ "$all_volumes_mounted" = true ] && echo 0 || echo 1)
+    return "$([ "$all_volumes_mounted" = true ] && echo 0 || echo 1)"
 }
 
 #------------------------------------------------------------------------------
