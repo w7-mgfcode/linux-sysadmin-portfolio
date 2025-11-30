@@ -9,10 +9,10 @@ data/
 *.log
 logs/
 
-# Reports
+# Reports (generated output only)
 reports/
-*.json
-*.html
+reports/**/*.json
+reports/**/*.html
 
 # Backups
 backups/
