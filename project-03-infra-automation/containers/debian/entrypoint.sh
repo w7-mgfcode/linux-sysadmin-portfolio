@@ -18,7 +18,7 @@ echo "Starting rsyslog..."
 rsyslogd || true
 
 # Create PID file for health check
-touch /var/run/ssh/sshd.pid
+touch /var/run/sshd.pid
 
 echo "Debian target container ready"
 echo "Hostname: $(hostname)"
