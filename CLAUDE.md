@@ -49,7 +49,23 @@ linux-sysadmin-portfolio/
 │   ├── tests/                         # E2E test suite (937 lines)
 │   └── docs/                          # Complete documentation (2,564 lines)
 │
-├── project-03-infra-automation/       # Infrastructure Automation Toolkit (planned)
+├── project-03-infra-automation/       # ✅ COMPLETED - Infrastructure Automation Toolkit
+│   ├── docker-compose.yml             # 5 services: Debian, Alpine, Ubuntu targets + Nginx + CoreDNS
+│   ├── scripts/                       # 4,400+ lines of Bash (6 scripts + 1 library)
+│   │   ├── server-hardening.sh        # 781 lines - PRIMARY SHOWCASE (5 security modules)
+│   │   ├── network-diagnostics.sh     # 588 lines - Git-style network troubleshooting
+│   │   ├── service-watchdog.sh        # 647 lines - Daemon mode service monitoring
+│   │   ├── backup-manager.sh          # 619 lines - Full/incremental backups
+│   │   ├── log-rotation.sh            # 773 lines - Advanced log rotation
+│   │   ├── system-inventory.sh        # 863 lines - System reporting
+│   │   └── lib/common.sh              # 412 lines - Shared utility library
+│   ├── containers/                    # Dockerfiles for Debian, Alpine, Ubuntu
+│   ├── configs/                       # Configuration examples
+│   ├── tests/                         # E2E test suite (691 lines, 40+ tests)
+│   └── docs/                          # Complete documentation (5,989 lines)
+│       ├── ARCHITECTURE.md            # 1,245 lines - System architecture
+│       ├── SCRIPTS.md                 # 3,092 lines - Complete script documentation
+│       └── TESTING.md                 # 912 lines - Test suite guide
 │
 ├── docs/
 │   ├── CONTRIBUTING.md
@@ -147,7 +163,7 @@ All Bash scripts in this project MUST follow these standards:
 |---------|--------|-------|---------|---------------|
 | Project 01: LAMP Monitoring | ✅ **COMPLETE** | 16 files | 3 scripts | 728 lines |
 | Project 02: Mail Server | ✅ **COMPLETE** | 48 files | 7 scripts | 1,949 lines |
-| Project 03: Infrastructure Automation | 📋 Planned | - | - | - |
+| Project 03: Infrastructure Automation | ✅ **COMPLETE** | 60+ files | 6 scripts + 1 lib | 4,400+ lines |
 
 **Project 01 Highlights:**
 - Production-ready LAMP stack (Nginx, PHP-FPM 8.2, MySQL 8.0)
@@ -173,6 +189,22 @@ All Bash scripts in this project MUST follow these standards:
 - SMTP, IMAP, POP3 protocol implementation
 - Spam filtering with Bayes learning
 
+**Project 03 Highlights:**
+- Infrastructure automation toolkit with 6 sophisticated scripts
+- 5 Docker services (Debian 12, Alpine 3.19, Ubuntu 24.04 + Nginx + CoreDNS)
+- Security hardening with 5 modules (SSH, kernel, firewall, permissions, users) (781 lines)
+- Network diagnostics with Git-style subcommands (588 lines)
+- Daemon mode service watchdog with PID management and signal handling (647 lines)
+- Full/incremental backup system with SHA256 verification and GFS retention (619 lines)
+- Advanced log rotation with deferred compression and service signaling (773 lines)
+- System inventory with JSON/HTML reports and change detection (863 lines)
+- Shared utility library with OS detection and cross-platform support (412 lines)
+- Comprehensive test suite: 40+ tests with TAP output (691 lines)
+- Complete documentation: README, ARCHITECTURE, SCRIPTS, TESTING (5,989 lines)
+- Multi-OS compatibility (Debian, Alpine, Ubuntu)
+- Idempotent operations safe to run multiple times
+- Production-ready security hardening and automation
+
 ---
 
 ## Key Files Reference
@@ -182,6 +214,10 @@ All Bash scripts in this project MUST follow these standards:
 - **Project 02:** `project-02-mail-server/README.md` - Comprehensive bilingual documentation for the mail server stack
 - **Project 02 Architecture:** `project-02-mail-server/docs/ARCHITECTURE.md` - Detailed system architecture, network topology, and data flow diagrams
 - **Project 02 Scripts:** `project-02-mail-server/docs/SCRIPTS.md` - Complete documentation for all 7 Bash scripts with usage examples
+- **Project 03:** `project-03-infra-automation/README.md` - Comprehensive bilingual documentation for the automation toolkit
+- **Project 03 Architecture:** `project-03-infra-automation/docs/ARCHITECTURE.md` - System architecture, design principles, security architecture, deployment models
+- **Project 03 Scripts:** `project-03-infra-automation/docs/SCRIPTS.md` - Complete documentation for all 6 scripts with configuration examples
+- **Project 03 Testing:** `project-03-infra-automation/docs/TESTING.md` - Test suite documentation, Docker environment setup, CI/CD integration
 
 ---
 

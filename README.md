@@ -37,7 +37,7 @@ Ez a portfólió gyakorlati Linux rendszergazdai készségeket mutat be három p
 |---|---------|--------|------------------|-------------|
 | 1 | [LAMP Monitoring](./project-01-lamp-monitoring/) | ✅ **Complete** | Production LAMP stack with log analysis | Produkciós LAMP stack naplóelemzéssel |
 | 2 | [Mail Server](./project-02-mail-server/) | ✅ **Complete** | Complete Postfix/Dovecot mail system with monitoring | Teljes Postfix/Dovecot levelező rendszer monitoringgal |
-| 3 | [Automation Toolkit](./project-03-infra-automation/) | 📋 Planned | Server hardening & maintenance scripts | Szerver keményítő és karbantartó scriptek |
+| 3 | [Automation Toolkit](./project-03-infra-automation/) | ✅ **Complete** | Advanced automation scripts for security & maintenance | Haladó automatizálási scriptek biztonsághoz és karbantartáshoz |
 
 ---
 
@@ -147,16 +147,42 @@ docker compose logs -f
 
 **[View Full Documentation →](./project-02-mail-server/README.md)**
 
-### Project 3: Infrastructure Automation Toolkit
+### Project 3: Infrastructure Automation Toolkit ✅ **COMPLETE**
 
-**EN:** A comprehensive collection of battle-tested Bash scripts for server hardening and maintenance.
+**EN:** A production-grade infrastructure automation toolkit featuring six sophisticated Bash scripts for security hardening, network diagnostics, service monitoring, backup management, log rotation, and system inventory. Includes comprehensive test suite (40+ tests), Docker-based multi-OS validation (Debian, Alpine, Ubuntu), and extensive documentation (5,989 lines). Demonstrates advanced system administration, daemon programming, and enterprise-level automation.
 
-**HU:** Átfogó gyűjtemény bevált Bash scriptekből szerverkeményítéshez és karbantartáshoz.
+**HU:** Produkció-szintű infrastruktúra automatizálási eszköztár hat kifinomult Bash scripttel biztonsági keményítéshez, hálózati diagnosztikához, szolgáltatás monitorozáshoz, biztonsági mentés kezeléshez, log rotációhoz és rendszer leltárhoz. Tartalmaz átfogó tesztcsomagot (40+ teszt), Docker-alapú multi-OS validációt (Debian, Alpine, Ubuntu) és kiterjedt dokumentációt (5,989 sor). Bemutatja a haladó rendszeradminisztrációt, daemon programozást és vállalati szintű automatizálást.
+
+**Implementation Stats:**
+- 60+ files created
+- 4,400+ lines of Bash scripts (6 scripts + 1 library)
+- 691 lines of test automation (40+ test cases)
+- 5,989 lines of documentation (4 comprehensive docs - bilingual)
+- 5 Docker services (Debian, Alpine, Ubuntu targets + Nginx + CoreDNS)
+- Production-ready with TAP test output and multi-OS support
 
 **Key Scripts:**
-- `server-hardening.sh` - Automated security baseline
-- `network-diagnostics.sh` - Network troubleshooting
-- `service-watchdog.sh` - Service monitoring daemon
+- `server-hardening.sh` (781 lines) - ⭐ PRIMARY SHOWCASE - 5 security modules (SSH, kernel, firewall, permissions, users), idempotent, dry-run mode
+- `network-diagnostics.sh` (588 lines) - Git-style subcommands for connectivity, DNS, routes, ports, scanning with ASCII tables
+- `service-watchdog.sh` (647 lines) - Daemon mode monitoring with PID management, signal handling, exponential backoff, webhook alerts
+- `backup-manager.sh` (619 lines) - Full/incremental backups, SHA256 verification, GFS retention, multiple compression (gzip/xz/zstd)
+- `log-rotation.sh` (773 lines) - Size/age-based rotation, deferred compression, service signaling, postrotate hooks
+- `system-inventory.sh` (863 lines) - Hardware/software/security inventory, JSON/HTML reports, change detection
+- `lib/common.sh` (412 lines) - Shared utility library with OS detection, logging, JSON, validation
+- `e2e-test.sh` (691 lines) - Comprehensive test suite with TAP output, Docker orchestration
+
+**Key Features:**
+- Multi-OS compatibility (Debian 12, Alpine 3.19, Ubuntu 24.04)
+- Idempotent operations (safe to run multiple times)
+- JSON structured output for all scripts
+- Comprehensive error handling and validation
+- Docker-based isolated testing environment
+- Bilingual documentation (English/Hungarian)
+- Cross-platform tool detection and fallback
+- Production-ready security hardening
+- Automated service recovery with restart limits
+
+**[View Full Documentation →](./project-03-infra-automation/README.md)**
 
 ---
 
