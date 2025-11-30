@@ -184,12 +184,14 @@ services:
       - "${DASHBOARD_PORT:-8080}:80"
     volumes:
       - mail-logs:/var/log/mail:ro
+      - mail-reports:/var/reports:ro
       - ./scripts:/scripts:ro
     environment:
       - MYSQL_HOST=mysql
       - MYSQL_DATABASE=${MYSQL_DATABASE:-mailserver}
       - MYSQL_USER=${MYSQL_USER:-mailuser}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - REPORT_DIR=/var/reports
     networks:
       - frontend
       - backend
@@ -220,6 +222,8 @@ volumes:
     name: mail-queue
   mail-logs:
     name: mail-logs
+  mail-reports:
+    name: mail-reports
   mail-backups:
     name: mail-backups
   mail-spam-data:
