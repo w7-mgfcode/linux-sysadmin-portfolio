@@ -273,8 +273,6 @@ test_ssl_certificates() {
 test_log_files() {
     log INFO "Test 10: Checking log files..."
 
-    local all_logs_present=true
-
     # Check Postfix logs
     if docker compose exec -T postfix test -f /var/log/mail/mail.log 2>/dev/null; then
         test_pass "Postfix log file present"
