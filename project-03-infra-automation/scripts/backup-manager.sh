@@ -72,10 +72,6 @@ Commands:
     prune <destination>             Apply retention policy
     help                            Show this help message
 
-Options:
-    --compression <algo>            Compression: gzip, xz, zstd (default: $DEFAULT_COMPRESSION)
-    --exclude <pattern>             Exclude pattern (can be repeated)
-
 Examples:
     # Full backup
     $SCRIPT_NAME full /var/www /backups
