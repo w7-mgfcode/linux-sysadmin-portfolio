@@ -1,0 +1,26 @@
+# CoreDNS Configuration for Infrastructure Automation Testing
+# Provides basic DNS resolution for network diagnostics testing
+
+. {
+    # Forward all queries to Google DNS
+    forward . 8.8.8.8 8.8.4.4
+
+    # Enable query logging
+    log
+
+    # Enable errors logging
+    errors
+
+    # Enable caching
+    cache 30
+
+    # Health check endpoint
+    health :8080
+}
+
+# Local test domain
+test.local {
+    file /etc/coredns/test.local.zone
+    log
+    errors
+}
