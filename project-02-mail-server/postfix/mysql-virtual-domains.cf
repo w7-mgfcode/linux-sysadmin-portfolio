@@ -1,0 +1,9 @@
+# Postfix MySQL - Virtual Domains Query
+# Used to verify if a domain is hosted by this mail server
+
+user = ${MYSQL_USER}
+password = ${MYSQL_PASSWORD}
+hosts = ${MYSQL_HOST}
+dbname = ${MYSQL_DATABASE}
+
+query = SELECT 1 FROM virtual_domains WHERE name='%s' AND enabled=1

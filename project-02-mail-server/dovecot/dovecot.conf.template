@@ -1,0 +1,19 @@
+# Dovecot Main Configuration
+# Minimal configuration - detailed settings in conf.d/*.conf
+
+# Protocols to enable
+protocols = imap pop3 lmtp
+
+# Listen on all interfaces
+listen = *
+
+# Logging
+log_path = /var/log/mail/dovecot.log
+info_log_path = /var/log/mail/dovecot-info.log
+debug_log_path = /var/log/mail/dovecot-debug.log
+
+# Include configuration files
+!include conf.d/*.conf
+
+# SQL authentication
+!include dovecot-sql.conf.ext

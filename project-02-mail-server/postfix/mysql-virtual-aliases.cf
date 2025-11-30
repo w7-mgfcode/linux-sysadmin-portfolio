@@ -1,0 +1,9 @@
+# Postfix MySQL - Virtual Aliases Query
+# Used for email forwarding and aliases
+
+user = ${MYSQL_USER}
+password = ${MYSQL_PASSWORD}
+hosts = ${MYSQL_HOST}
+dbname = ${MYSQL_DATABASE}
+
+query = SELECT destination FROM virtual_aliases WHERE source='%s' AND enabled=1

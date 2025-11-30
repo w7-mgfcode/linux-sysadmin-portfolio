@@ -1,0 +1,36 @@
+# SpamAssassin Local Configuration
+
+# Required score for spam classification
+required_score 5.0
+
+# Rewrite subject line of spam messages
+rewrite_header Subject [***SPAM***]
+
+# Report spam to help improve SpamAssassin
+report_safe 0
+
+# Use Bayes filtering
+use_bayes 1
+bayes_auto_learn 1
+
+# Use network tests
+skip_rbl_checks 0
+use_razor2 0
+use_pyzor 0
+
+# Enable auto-whitelist
+use_auto_whitelist 1
+
+# DNS settings
+dns_available yes
+
+# Scoring rules
+score BAYES_00 -1.9
+score BAYES_05 -1.9
+score BAYES_20 -0.74
+score BAYES_40 0.39
+score BAYES_50 0.78
+score BAYES_60 1.67
+score BAYES_80 2.47
+score BAYES_95 3.50
+score BAYES_99 5.00

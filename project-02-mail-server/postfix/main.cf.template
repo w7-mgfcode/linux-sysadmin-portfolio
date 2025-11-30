@@ -1,0 +1,151 @@
+# Postfix Main Configuration - Virtual Mailbox Server
+# Generated from template - variables substituted by entrypoint
+
+#===============================================================================
+# General Settings
+#===============================================================================
+myhostname = ${MAIL_HOSTNAME}
+mydomain = ${MAIL_DOMAIN}
+myorigin = $mydomain
+mydestination = localhost
+mynetworks = 127.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+
+# Banner
+smtpd_banner = $myhostname ESMTP
+
+# Disable local delivery (virtual only)
+local_recipient_maps =
+
+#===============================================================================
+# Virtual Mailbox Configuration
+#===============================================================================
+virtual_mailbox_domains = mysql:/etc/postfix/mysql-virtual-domains.cf
+virtual_mailbox_maps = mysql:/etc/postfix/mysql-virtual-mailboxes.cf
+virtual_alias_maps = mysql:/etc/postfix/mysql-virtual-aliases.cf
+
+# Mailbox location and ownership
+virtual_mailbox_base = /var/mail/vhosts
+virtual_minimum_uid = 5000
+virtual_uid_maps = static:5000
+virtual_gid_maps = static:5000
+
+# Mailbox format (Maildir with trailing slash)
+virtual_mailbox_limit = 512000000
+virtual_mailbox_limit_maps = hash:/etc/postfix/vhost_mailbox_limit_maps
+virtual_mailbox_limit_override = yes
+virtual_mailbox_limit_inbox = no
+virtual_overquota_bounce = yes
+
+#===============================================================================
+# TLS/SSL Configuration
+#===============================================================================
+# TLS parameters for outgoing mail
+smtp_use_tls = yes
+smtp_tls_security_level = may
+smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
+smtp_tls_loglevel = 1
+
+# TLS parameters for incoming mail
+smtpd_use_tls = yes
+smtpd_tls_security_level = may
+smtpd_tls_cert_file = /etc/mail/certs/mail-cert.pem
+smtpd_tls_key_file = /etc/mail/certs/mail-key.pem
+smtpd_tls_CAfile = /etc/mail/certs/ca-cert.pem
+smtpd_tls_received_header = yes
+smtpd_tls_session_cache_database = btree:$${data_directory}/smtpd_scache
+smtpd_tls_loglevel = 1
+smtpd_tls_auth_only = no
+
+# Modern TLS only
+smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtpd_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtp_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+smtp_tls_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+
+#===============================================================================
+# SASL Authentication (for mail clients)
+#===============================================================================
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = inet:dovecot:12345
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_local_domain = $mydomain
+broken_sasl_auth_clients = yes
+
+#===============================================================================
+# SMTP Restrictions
+#===============================================================================
+# Relay restrictions
+smtpd_relay_restrictions =
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    defer_unauth_destination
+
+# Client restrictions
+smtpd_client_restrictions =
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_unknown_client_hostname
+
+# Sender restrictions
+smtpd_sender_restrictions =
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_unknown_sender_domain,
+    reject_non_fqdn_sender
+
+# Recipient restrictions
+smtpd_recipient_restrictions =
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_non_fqdn_recipient,
+    reject_unknown_recipient_domain,
+    reject_unauth_destination,
+    check_policy_service inet:127.0.0.1:10023
+
+# HELO restrictions
+smtpd_helo_required = yes
+smtpd_helo_restrictions =
+    permit_mynetworks,
+    permit_sasl_authenticated,
+    reject_invalid_helo_hostname,
+    reject_non_fqdn_helo_hostname
+
+# Data restrictions
+smtpd_data_restrictions =
+    reject_unauth_pipelining
+
+#===============================================================================
+# SpamAssassin Integration (Milter)
+#===============================================================================
+# Milter configuration
+milter_default_action = accept
+milter_protocol = 6
+smtpd_milters = inet:spamassassin:783
+non_smtpd_milters = $smtpd_milters
+
+#===============================================================================
+# Message Size Limits
+#===============================================================================
+message_size_limit = 52428800
+mailbox_size_limit = 0
+
+#===============================================================================
+# Queue Configuration
+#===============================================================================
+maximal_queue_lifetime = 5d
+bounce_queue_lifetime = 5d
+maximal_backoff_time = 4000s
+minimal_backoff_time = 300s
+queue_run_delay = 300s
+
+#===============================================================================
+# Debugging (disable in production)
+#===============================================================================
+# debug_peer_level = 2
+# debug_peer_list = 127.0.0.1
+
+#===============================================================================
+# Compatibility
+#===============================================================================
+compatibility_level = 3.6

@@ -1,0 +1,25 @@
+# Dovecot MySQL Authentication Configuration
+
+driver = mysql
+connect = host=${MYSQL_HOST} dbname=${MYSQL_DATABASE} user=${MYSQL_USER} password=${MYSQL_PASSWORD}
+
+# Default password scheme
+default_pass_scheme = BLF-CRYPT
+
+# Password query
+password_query = \
+  SELECT email as user, password, \
+         '/var/mail/vhosts/%d/%n' as userdb_home, \
+         'maildir:/var/mail/vhosts/%d/%n' as userdb_mail, \
+         5000 AS userdb_uid, 5000 AS userdb_gid \
+  FROM virtual_users WHERE email='%u' AND enabled=1
+
+# User query
+user_query = \
+  SELECT '/var/mail/vhosts/%d/%n' as home, \
+         'maildir:/var/mail/vhosts/%d/%n' as mail, \
+         5000 AS uid, 5000 AS gid \
+  FROM virtual_users WHERE email='%u' AND enabled=1
+
+# Iterate query (for doveadm)
+iterate_query = SELECT email as user FROM virtual_users WHERE enabled=1
