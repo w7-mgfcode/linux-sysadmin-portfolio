@@ -1,0 +1,161 @@
+version: '3.8'
+
+services:
+  # =============================================================================
+  # Target Systems for Testing
+  # =============================================================================
+
+  # Debian 12 (Primary Test Target)
+  debian-target:
+    build: ./containers/debian
+    container_name: infra-debian-target
+    hostname: debian-target
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN      # For iptables testing
+      - SYS_ADMIN      # For sysctl modifications
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./configs:/configs:ro
+      - infra-reports:/var/reports
+      - infra-backups:/var/backups
+      - infra-logs:/var/log/infra
+    environment:
+      - TZ=${TZ:-UTC}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - REPORT_DIR=/var/reports
+      - BACKUP_DIR=/var/backups
+    networks:
+      - test-net
+    command: /bin/bash /entrypoint.sh
+    healthcheck:
+      test: ["CMD", "test", "-f", "/var/run/ssh/sshd.pid"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # Alpine Linux (Minimal Environment)
+  alpine-target:
+    build: ./containers/alpine
+    container_name: infra-alpine-target
+    hostname: alpine-target
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./configs:/configs:ro
+      - infra-reports:/var/reports
+      - infra-backups:/var/backups
+      - infra-logs:/var/log/infra
+    environment:
+      - TZ=${TZ:-UTC}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - REPORT_DIR=/var/reports
+      - BACKUP_DIR=/var/backups
+    networks:
+      - test-net
+    command: /bin/sh /entrypoint.sh
+    healthcheck:
+      test: ["CMD", "test", "-f", "/run/sshd.pid"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # Ubuntu 24.04 (Enterprise Environment)
+  ubuntu-target:
+    build: ./containers/ubuntu
+    container_name: infra-ubuntu-target
+    hostname: ubuntu-target
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./configs:/configs:ro
+      - infra-reports:/var/reports
+      - infra-backups:/var/backups
+      - infra-logs:/var/log/infra
+    environment:
+      - TZ=${TZ:-UTC}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - REPORT_DIR=/var/reports
+      - BACKUP_DIR=/var/backups
+    networks:
+      - test-net
+    command: /bin/bash /entrypoint.sh
+    healthcheck:
+      test: ["CMD", "test", "-f", "/var/run/sshd.pid"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # =============================================================================
+  # Test Services for Network Diagnostics
+  # =============================================================================
+
+  # Test Web Server
+  test-webserver:
+    image: nginx:alpine
+    container_name: infra-test-webserver
+    hostname: test-webserver
+    restart: unless-stopped
+    networks:
+      test-net:
+        ipv4_address: 172.30.0.10
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Test DNS Server (CoreDNS)
+  test-dns:
+    image: coredns/coredns:latest
+    container_name: infra-test-dns
+    hostname: test-dns
+    restart: unless-stopped
+    volumes:
+      - ./configs/dns/Corefile:/Corefile:ro
+    networks:
+      test-net:
+        ipv4_address: 172.30.0.11
+    command: -conf /Corefile
+    healthcheck:
+      test: ["CMD", "sh", "-c", "echo 'health' | nc -w 1 localhost 53"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# =============================================================================
+# Networks
+# =============================================================================
+
+networks:
+  test-net:
+    driver: bridge
+    name: infra-test-net
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
+
+# =============================================================================
+# Volumes
+# =============================================================================
+
+volumes:
+  infra-reports:
+    name: infra-reports
+  infra-backups:
+    name: infra-backups
+  infra-logs:
+    name: infra-logs

@@ -1,0 +1,40 @@
+# Environment variables
+.env
+
+# Docker volumes (data directories)
+volumes/
+data/
+
+# Logs
+*.log
+logs/
+
+# Reports
+reports/
+*.json
+*.html
+
+# Backups
+backups/
+*.tar.gz
+*.zip
+
+# Test artifacts
+test-results/
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
