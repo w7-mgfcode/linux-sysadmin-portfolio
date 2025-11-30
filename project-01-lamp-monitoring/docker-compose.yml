@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: lamp-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./app:/var/www/html:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - frontend
+    depends_on:
+      php:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+    container_name: lamp-php
+    restart: unless-stopped
+    volumes:
+      - ./app:/var/www/html
+      - ./scripts:/scripts:ro
+      - nginx_logs:/var/log/nginx:ro  # For log analysis
+      - backups:/backups
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_DATABASE=${DB_NAME:-lampdb}
+      - MYSQL_USER=${DB_USER:-lampuser}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm -t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mysql:
+    image: mysql:8.0
+    container_name: lamp-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME:-lampdb}
+      - MYSQL_USER=${DB_USER:-lampuser}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./mysql/conf.d:/etc/mysql/conf.d:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  adminer:
+    image: adminer:latest
+    container_name: lamp-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=mysql
+    networks:
+      - backend
+    depends_on:
+      - mysql
+
+networks:
+  frontend:
+    driver: bridge
+    name: lamp-frontend
+  backend:
+    driver: bridge
+    name: lamp-backend
+    internal: true
+
+volumes:
+  db_data:
+    name: lamp-db-data
+  nginx_logs:
+    name: lamp-nginx-logs
+  backups:
+    name: lamp-backups

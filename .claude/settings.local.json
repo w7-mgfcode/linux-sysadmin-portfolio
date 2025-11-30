@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(tree:*)",
+      "Bash(else echo \"NOT FOUND\")",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(find:*)",
+      "Bash(docker compose:*)",
+      "Bash(bash -n:*)",
+      "Bash(test:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
