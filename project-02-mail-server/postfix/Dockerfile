@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     libsasl2-modules \
     ca-certificates \
     gettext-base \
+    default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy configuration templates
