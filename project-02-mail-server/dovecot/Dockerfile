@@ -14,6 +14,10 @@ RUN apt-get update && apt-get install -y \
 RUN groupadd -g 5000 vmail && \
     useradd -u 5000 -g vmail -s /usr/sbin/nologin -d /var/mail vmail
 
+# Create postfix user/group for LMTP and auth sockets
+RUN groupadd -g 5001 postfix && \
+    useradd -u 5001 -g postfix -s /usr/sbin/nologin -d /var/spool/postfix postfix
+
 # Copy configuration files
 COPY dovecot.conf.template /etc/dovecot/dovecot.conf.template
 COPY dovecot-sql.conf.ext.template /etc/dovecot/dovecot-sql.conf.ext.template

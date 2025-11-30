@@ -1,6 +1,9 @@
 # Dovecot MySQL Authentication Configuration
+# This file is read by the SQL driver specified in dovecot.conf
 
+# Database driver: mysql, pgsql or sqlite
 driver = mysql
+
 connect = host=${MYSQL_HOST} dbname=${MYSQL_DATABASE} user=${MYSQL_USER} password=${MYSQL_PASSWORD}
 
 # Default password scheme
