@@ -38,17 +38,14 @@ log() {
 
 info() {
     echo -e "${BLUE}[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] [Validation] [INFO]${NC} $*"
-    ((CHECKS_PASSED++))
 }
 
 warn() {
     echo -e "${YELLOW}[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] [Validation] [WARN]${NC} $*"
-    ((CHECKS_WARNING++))
 }
 
 error() {
     echo -e "${RED}[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] [Validation] [ERROR]${NC} $*"
-    ((CHECKS_FAILED++))
 }
 
 success() {
@@ -64,6 +61,7 @@ check_docker() {
     if ! command -v docker &> /dev/null; then
         error "Docker is not installed"
         error "Install Docker: https://docs.docker.com/get-docker/"
+        ((CHECKS_FAILED++))
         return 1
     fi
 
@@ -71,12 +69,14 @@ check_docker() {
         error "Docker daemon is not running or not accessible"
         error "Start Docker: sudo systemctl start docker"
         error "Or check permissions: sudo usermod -aG docker \$USER"
+        ((CHECKS_FAILED++))
         return 1
     fi
 
     local docker_version
     docker_version=$(docker --version | cut -d' ' -f3 | tr -d ',')
     info "Docker is available (version: ${docker_version})"
+    ((CHECKS_PASSED++))
     return 0
 }
 
@@ -100,10 +100,12 @@ check_docker_compose() {
     else
         error "Docker Compose is not available"
         error "Install Docker Compose: https://docs.docker.com/compose/install/"
+        ((CHECKS_FAILED++))
         return 1
     fi
 
     info "Docker Compose is available (${compose_cmd} ${compose_version})"
+    ((CHECKS_PASSED++))
     return 0
 }
 
@@ -148,10 +150,12 @@ check_config_files() {
         for file in "${missing_files[@]}"; do
             error "  - $file"
         done
+        ((CHECKS_FAILED++))
         return 1
     fi
 
     info "All ${#required_files[@]} required configuration files present"
+    ((CHECKS_PASSED++))
     return 0
 }
 
@@ -167,10 +171,12 @@ check_env_file() {
         "MYSQL_ROOT_PASSWORD"
         "MYSQL_PASSWORD"
     )
+    local has_warnings=false
 
     if [[ ! -f .env ]]; then
         warn ".env file not found - will use docker-compose.yml defaults"
         warn "Create .env file for custom configuration"
+        ((CHECKS_WARNING++))
         return 0
     fi
 
@@ -187,6 +193,7 @@ check_env_file() {
         for var in "${missing_vars[@]}"; do
             warn "  - $var"
         done
+        has_warnings=true
     else
         info "Environment file validated - all required variables present"
     fi
@@ -195,6 +202,13 @@ check_env_file() {
     if grep -q "changeme" .env 2>/dev/null; then
         warn "Default passwords detected in .env file"
         warn "Change default passwords before production deployment"
+        has_warnings=true
+    fi
+
+    if [[ "$has_warnings" = true ]]; then
+        ((CHECKS_WARNING++))
+    else
+        ((CHECKS_PASSED++))
     fi
 
     return 0
@@ -241,8 +255,10 @@ check_ports() {
             warn "  - $port"
         done
         warn "Services may fail to start if ports are occupied"
+        ((CHECKS_WARNING++))
     else
         info "All required ports are available"
+        ((CHECKS_PASSED++))
     fi
 
     return 0
@@ -261,6 +277,7 @@ check_permissions() {
     )
 
     local non_executable=()
+    local has_warnings=false
 
     for script in "${scripts[@]}"; do
         if [[ ! -x "$script" ]]; then
@@ -274,6 +291,7 @@ check_permissions() {
             error "  - $script"
         done
         error "Run: chmod +x <script>"
+        ((CHECKS_FAILED++))
         return 1
     fi
 
@@ -287,7 +305,14 @@ check_permissions() {
         if [[ "$perms" == "600" ]]; then
             warn "mysql/init.sql has restrictive permissions (600)"
             warn "Docker may not be able to read it. Recommended: chmod 644 mysql/init.sql"
+            has_warnings=true
         fi
+    fi
+
+    if [[ "$has_warnings" = true ]]; then
+        ((CHECKS_WARNING++))
+    else
+        ((CHECKS_PASSED++))
     fi
 
     return 0
@@ -300,9 +325,12 @@ check_compose_syntax() {
     log INFO "Checking docker-compose.yml syntax..."
 
     local output
+    local has_warnings=false
+
     if ! output=$(docker compose config 2>&1); then
         error "docker-compose.yml has syntax errors:"
         error "$output"
+        ((CHECKS_FAILED++))
         return 1
     fi
 
@@ -310,9 +338,17 @@ check_compose_syntax() {
     if grep -q "^version:" docker-compose.yml; then
         warn "docker-compose.yml uses 'version' directive (obsolete in Compose v2)"
         warn "Remove 'version:' line to avoid warnings"
+        has_warnings=true
     fi
 
     info "docker-compose.yml syntax is valid"
+
+    if [[ "$has_warnings" = true ]]; then
+        ((CHECKS_WARNING++))
+    else
+        ((CHECKS_PASSED++))
+    fi
+
     return 0
 }
 
@@ -321,6 +357,8 @@ check_compose_syntax() {
 #------------------------------------------------------------------------------
 check_template_variables() {
     log INFO "Checking template variables..."
+
+    local has_warnings=false
 
     # Check Postfix main.cf.template
     if [[ -f postfix/main.cf.template ]]; then
@@ -340,6 +378,7 @@ check_template_variables() {
                 warn "  - $var"
             done
             warn "Verify these are in entrypoint.sh envsubst list"
+            has_warnings=true
         fi
     fi
 
@@ -355,6 +394,13 @@ check_template_variables() {
     fi
 
     info "Template variables checked"
+
+    if [[ "$has_warnings" = true ]]; then
+        ((CHECKS_WARNING++))
+    else
+        ((CHECKS_PASSED++))
+    fi
+
     return 0
 }
 
@@ -370,8 +416,10 @@ check_disk_space() {
     if [[ "$available_gb" -lt 5 ]]; then
         warn "Low disk space: ${available_gb}GB available"
         warn "Mail server images and volumes require at least 5GB"
+        ((CHECKS_WARNING++))
     else
         info "Sufficient disk space available (${available_gb}GB)"
+        ((CHECKS_PASSED++))
     fi
 
     return 0
@@ -387,8 +435,10 @@ check_docker_resources() {
     if docker info 2>/dev/null | grep -q "Operating System.*Docker Desktop"; then
         info "Docker Desktop detected - verify resource allocation in settings"
         warn "Recommended: 4GB RAM, 2 CPUs for mail server"
+        ((CHECKS_WARNING++))
     else
         info "Docker resources checked (native Docker)"
+        ((CHECKS_PASSED++))
     fi
 
     return 0
