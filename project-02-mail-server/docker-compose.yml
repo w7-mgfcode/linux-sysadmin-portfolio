@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # SSL Certificate Init Container (runs once)
   cert-init:
@@ -18,10 +16,10 @@ services:
     container_name: mail-mysql
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-mail_root_changeme}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-mailserver}
       - MYSQL_USER=${MYSQL_USER:-mailuser}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-mail_secure_changeme}
       - TZ=${TZ:-UTC}
     volumes:
       - mail-mysql-data:/var/lib/mysql
@@ -62,7 +60,7 @@ services:
       - MYSQL_HOST=mysql
       - MYSQL_DATABASE=${MYSQL_DATABASE:-mailserver}
       - MYSQL_USER=${MYSQL_USER:-mailuser}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-mail_secure_changeme}
     networks:
       - frontend
       - backend
@@ -101,7 +99,7 @@ services:
       - MYSQL_HOST=mysql
       - MYSQL_DATABASE=${MYSQL_DATABASE:-mailserver}
       - MYSQL_USER=${MYSQL_USER:-mailuser}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-mail_secure_changeme}
     networks:
       - frontend
       - backend
@@ -155,7 +153,7 @@ services:
       - ROUNDCUBEMAIL_DB_HOST=mysql
       - ROUNDCUBEMAIL_DB_NAME=roundcube
       - ROUNDCUBEMAIL_DB_USER=${MYSQL_USER:-mailuser}
-      - ROUNDCUBEMAIL_DB_PASSWORD=${MYSQL_PASSWORD}
+      - ROUNDCUBEMAIL_DB_PASSWORD=${MYSQL_PASSWORD:-mail_secure_changeme}
     networks:
       - frontend
       - backend
@@ -189,7 +187,8 @@ services:
       - MYSQL_HOST=mysql
       - MYSQL_DATABASE=${MYSQL_DATABASE:-mailserver}
       - MYSQL_USER=${MYSQL_USER:-mailuser}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-mail_secure_changeme}
+      - REPORT_DIR=/var/reports
     networks:
       - frontend
       - backend

@@ -31,10 +31,10 @@ virtual_gid_maps = static:5000
 
 # Mailbox format (Maildir with trailing slash)
 virtual_mailbox_limit = 512000000
-virtual_mailbox_limit_maps = hash:/etc/postfix/vhost_mailbox_limit_maps
-virtual_mailbox_limit_override = yes
-virtual_mailbox_limit_inbox = no
-virtual_overquota_bounce = yes
+# virtual_mailbox_limit_maps = hash:/etc/postfix/vhost_mailbox_limit_maps  # Feature not implemented
+# virtual_mailbox_limit_override = yes
+# virtual_mailbox_limit_inbox = no
+# virtual_overquota_bounce = yes
 
 #===============================================================================
 # TLS/SSL Configuration
@@ -52,7 +52,7 @@ smtpd_tls_cert_file = /etc/mail/certs/mail-cert.pem
 smtpd_tls_key_file = /etc/mail/certs/mail-key.pem
 smtpd_tls_CAfile = /etc/mail/certs/ca-cert.pem
 smtpd_tls_received_header = yes
-smtpd_tls_session_cache_database = btree:$${data_directory}/smtpd_scache
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
 smtpd_tls_loglevel = 1
 smtpd_tls_auth_only = no
 

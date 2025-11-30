@@ -5,7 +5,7 @@ echo "[Postfix] Starting entrypoint..."
 
 # Substitute environment variables in templates
 echo "[Postfix] Processing configuration templates..."
-envsubst < /etc/postfix/main.cf.template > /etc/postfix/main.cf
+envsubst '$MAIL_HOSTNAME $MAIL_DOMAIN' < /etc/postfix/main.cf.template > /etc/postfix/main.cf
 envsubst < /etc/postfix/mysql-virtual-domains.cf > /etc/postfix/mysql-virtual-domains.cf.tmp && \
     mv /etc/postfix/mysql-virtual-domains.cf.tmp /etc/postfix/mysql-virtual-domains.cf
 envsubst < /etc/postfix/mysql-virtual-mailboxes.cf > /etc/postfix/mysql-virtual-mailboxes.cf.tmp && \

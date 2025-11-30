@@ -15,5 +15,5 @@ debug_log_path = /var/log/mail/dovecot-debug.log
 # Include configuration files
 !include conf.d/*.conf
 
-# SQL authentication
-!include dovecot-sql.conf.ext
+# Note: dovecot-sql.conf.ext is NOT included here - it's referenced
+# by auth-sql.conf.ext via the args parameter in passdb/userdb blocks
