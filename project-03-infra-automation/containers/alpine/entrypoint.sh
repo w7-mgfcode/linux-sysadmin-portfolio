@@ -4,7 +4,7 @@
 # Starts SSH daemon and keeps container running
 #===============================================================================
 
-set -e
+set -eu
 
 # Create required directories
 mkdir -p /var/run/sshd /run/sshd /var/reports /var/backups /var/log/infra
@@ -27,4 +27,4 @@ echo "Hostname: $(hostname)"
 echo "IP Address: $(hostname -i)"
 
 # Keep container running
-exec "$@"
+exec tail -f /dev/null

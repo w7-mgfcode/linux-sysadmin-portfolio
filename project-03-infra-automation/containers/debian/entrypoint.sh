@@ -4,25 +4,28 @@
 # Starts SSH daemon and keeps container running
 #===============================================================================
 
-set -e
+set -euo pipefail
 
 # Create required directories
-mkdir -p /var/run/sshd /var/reports /var/backups /var/log/infra
+mkdir -p /run/sshd /var/reports /var/backups /var/log/infra
 
 # Start SSH daemon
 echo "Starting SSH daemon..."
 /usr/sbin/sshd
 
-# Start rsyslog
+# Start rsyslog (clean start)
 echo "Starting rsyslog..."
-rsyslogd || true
+rm -f /run/rsyslogd.pid 2>/dev/null || true
+pkill -9 rsyslogd 2>/dev/null || true
+sleep 1
+rsyslogd 2>/dev/null || echo "rsyslog start skipped (may already be running)"
 
 # Create PID file for health check
-touch /var/run/sshd.pid
+touch /run/sshd.pid
 
 echo "Debian target container ready"
 echo "Hostname: $(hostname)"
 echo "IP Address: $(hostname -I)"
 
 # Keep container running
-exec "$@"
+exec tail -f /dev/null
