@@ -27,6 +27,16 @@ CREATE TABLE IF NOT EXISTS app_logs (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Create server stats table for dashboard metrics
+CREATE TABLE IF NOT EXISTS server_stats (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    metric_name VARCHAR(100) NOT NULL,
+    metric_value VARCHAR(255) NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_timestamp (timestamp),
+    INDEX idx_metric_name (metric_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Insert sample data
 INSERT IGNORE INTO users (username, email) VALUES
     ('admin', 'admin@example.com'),
@@ -40,3 +50,11 @@ INSERT INTO app_logs (level, message, user_id, ip_address) VALUES
     ('WARNING', 'Failed login attempt', NULL, '192.168.1.200'),
     ('ERROR', 'Database connection timeout', NULL, '127.0.0.1'),
     ('INFO', 'User created successfully', 2, '192.168.1.100');
+
+-- Insert sample server statistics
+INSERT INTO server_stats (metric_name, metric_value) VALUES
+    ('CPU Usage', '45%'),
+    ('Memory Usage', '2.1 GB / 8 GB'),
+    ('Disk Usage', '35 GB / 100 GB'),
+    ('Active Connections', '12'),
+    ('Uptime', '5 days, 3 hours');
