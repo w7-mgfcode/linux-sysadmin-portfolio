@@ -91,33 +91,33 @@ analyze_access_logs() {
     local -A method_counts
 
     while IFS= read -r line; do
-        ((total_requests++))
+        : $((total_requests++))
 
         # Extract IP address (first field)
         local ip=$(echo "$line" | awk '{print $1}')
-        ((ip_counts[$ip]++))
+        ip_counts[$ip]=$((${ip_counts[$ip]:-0} + 1))
 
         # Extract endpoint (path from request)
         local endpoint=$(echo "$line" | awk '{print $7}' | cut -d'?' -f1)
-        ((endpoint_counts[$endpoint]++))
+        endpoint_counts[$endpoint]=$((${endpoint_counts[$endpoint]:-0} + 1))
 
         # Extract HTTP method
         local method=$(echo "$line" | awk '{print $6}' | tr -d '"')
-        ((method_counts[$method]++))
+        method_counts[$method]=$((${method_counts[$method]:-0} + 1))
 
         # Extract HTTP status code
         local status=$(echo "$line" | awk '{print $9}')
         case $status in
-            2[0-9][0-9]) ((STATUS_CATEGORIES[2xx]++)) ;;
-            3[0-9][0-9]) ((STATUS_CATEGORIES[3xx]++)) ;;
-            4[0-9][0-9]) ((STATUS_CATEGORIES[4xx]++)) ;;
-            5[0-9][0-9]) ((STATUS_CATEGORIES[5xx]++)) ;;
+            2[0-9][0-9]) STATUS_CATEGORIES[2xx]=$((${STATUS_CATEGORIES[2xx]} + 1)) ;;
+            3[0-9][0-9]) STATUS_CATEGORIES[3xx]=$((${STATUS_CATEGORIES[3xx]} + 1)) ;;
+            4[0-9][0-9]) STATUS_CATEGORIES[4xx]=$((${STATUS_CATEGORIES[4xx]} + 1)) ;;
+            5[0-9][0-9]) STATUS_CATEGORIES[5xx]=$((${STATUS_CATEGORIES[5xx]} + 1)) ;;
         esac
 
         # Extract hour for traffic analysis
         local hour=$(echo "$line" | grep -oP '\d{2}(?=:\d{2}:\d{2})' | head -1)
         if [[ -n "$hour" ]]; then
-            ((hourly_traffic[$hour]++))
+            hourly_traffic[$hour]=$((${hourly_traffic[$hour]:-0} + 1))
         fi
 
     done < "$ACCESS_LOG"
@@ -145,11 +145,11 @@ analyze_error_logs() {
     local -A error_types
     while IFS= read -r line; do
         if [[ "$line" =~ \[error\] ]]; then
-            ((error_types[error]++))
+            error_types[error]=$((${error_types[error]:-0} + 1))
         elif [[ "$line" =~ \[warn\] ]]; then
-            ((error_types[warn]++))
+            error_types[warn]=$((${error_types[warn]:-0} + 1))
         elif [[ "$line" =~ \[crit\] ]]; then
-            ((error_types[crit]++))
+            error_types[crit]=$((${error_types[crit]:-0} + 1))
         fi
     done < "$ERROR_LOG"
 

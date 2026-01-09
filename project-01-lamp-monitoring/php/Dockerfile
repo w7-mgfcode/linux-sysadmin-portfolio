@@ -32,8 +32,8 @@ COPY php.ini /usr/local/etc/php/conf.d/custom.ini
 RUN useradd -u 1000 -ms /bin/bash phpuser
 
 # Set permissions
-RUN mkdir -p /var/www/html /scripts /backups /var/log/nginx && \
-    chown -R phpuser:phpuser /var/www/html /backups && \
+RUN mkdir -p /var/www/html /scripts /backups /var/log/nginx /var/reports && \
+    chown -R phpuser:phpuser /var/www/html /backups /var/reports && \
     chmod +x /scripts/*.sh 2>/dev/null || true
 
 # Switch to non-root user
