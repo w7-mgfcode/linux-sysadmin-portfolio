@@ -23,7 +23,6 @@ set -euo pipefail
 # Configuration
 #===============================================================================
 
-readonly SCRIPT_NAME=$(basename "$0")
 readonly SCRIPT_VERSION="1.0.0"
 
 # MySQL Configuration
@@ -35,7 +34,8 @@ readonly MYSQL_PASSWORD="${MYSQL_PASSWORD:-}"
 # Backup Configuration
 readonly BACKUP_DIR="${BACKUP_DIR:-/backups}"
 readonly RETENTION_DAYS="${RETENTION_DAYS:-7}"
-readonly TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+readonly TIMESTAMP
 readonly BACKUP_FILE="${BACKUP_DIR}/${MYSQL_DATABASE}_${TIMESTAMP}.sql.gz"
 
 #===============================================================================
@@ -132,7 +132,7 @@ cleanup_old_backups() {
         rm -f "$file"
         log "YELLOW" "Deleted: $(basename "$file")"
         ((deleted++))
-    done < <(find "$BACKUP_DIR" -name "*.sql.gz" -type f -mtime +${RETENTION_DAYS} -print0)
+    done < <(find "$BACKUP_DIR" -name "*.sql.gz" -type f -mtime +"${RETENTION_DAYS}" -print0)
 
     if [[ $deleted -gt 0 ]]; then
         log "GREEN" "Deleted $deleted old backup(s)"

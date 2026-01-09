@@ -29,7 +29,6 @@ set -euo pipefail
 # Configuration
 #===============================================================================
 
-readonly SCRIPT_NAME=$(basename "$0")
 readonly SCRIPT_VERSION="1.0.0"
 
 # Paths
@@ -43,7 +42,8 @@ readonly ERROR_THRESHOLD="${ERROR_THRESHOLD:-5.0}"
 readonly WARNING_THRESHOLD="${WARNING_THRESHOLD:-2.0}"
 
 # Timestamp for reports
-readonly DATE_FORMAT=$(date +%Y-%m-%d_%H-%M-%S)
+DATE_FORMAT=$(date +%Y-%m-%d_%H-%M-%S)
+readonly DATE_FORMAT
 
 #===============================================================================
 # Colors & Logging
@@ -94,28 +94,33 @@ analyze_access_logs() {
         : $((total_requests++))
 
         # Extract IP address (first field)
-        local ip=$(echo "$line" | awk '{print $1}')
+        local ip
+        ip=$(echo "$line" | awk '{print $1}')
         ip_counts[$ip]=$((${ip_counts[$ip]:-0} + 1))
 
         # Extract endpoint (path from request)
-        local endpoint=$(echo "$line" | awk '{print $7}' | cut -d'?' -f1)
+        local endpoint
+        endpoint=$(echo "$line" | awk '{print $7}' | cut -d'?' -f1)
         endpoint_counts[$endpoint]=$((${endpoint_counts[$endpoint]:-0} + 1))
 
         # Extract HTTP method
-        local method=$(echo "$line" | awk '{print $6}' | tr -d '"')
+        local method
+        method=$(echo "$line" | awk '{print $6}' | tr -d '"')
         method_counts[$method]=$((${method_counts[$method]:-0} + 1))
 
         # Extract HTTP status code
-        local status=$(echo "$line" | awk '{print $9}')
+        local status
+        status=$(echo "$line" | awk '{print $9}')
         case $status in
-            2[0-9][0-9]) STATUS_CATEGORIES[2xx]=$((${STATUS_CATEGORIES[2xx]} + 1)) ;;
-            3[0-9][0-9]) STATUS_CATEGORIES[3xx]=$((${STATUS_CATEGORIES[3xx]} + 1)) ;;
-            4[0-9][0-9]) STATUS_CATEGORIES[4xx]=$((${STATUS_CATEGORIES[4xx]} + 1)) ;;
-            5[0-9][0-9]) STATUS_CATEGORIES[5xx]=$((${STATUS_CATEGORIES[5xx]} + 1)) ;;
+            2[0-9][0-9]) STATUS_CATEGORIES[2xx]=$((STATUS_CATEGORIES[2xx] + 1)) ;;
+            3[0-9][0-9]) STATUS_CATEGORIES[3xx]=$((STATUS_CATEGORIES[3xx] + 1)) ;;
+            4[0-9][0-9]) STATUS_CATEGORIES[4xx]=$((STATUS_CATEGORIES[4xx] + 1)) ;;
+            5[0-9][0-9]) STATUS_CATEGORIES[5xx]=$((STATUS_CATEGORIES[5xx] + 1)) ;;
         esac
 
         # Extract hour for traffic analysis
-        local hour=$(echo "$line" | grep -oP '\d{2}(?=:\d{2}:\d{2})' | head -1)
+        local hour
+        hour=$(echo "$line" | grep -oP '\d{2}(?=:\d{2}:\d{2})' | head -1)
         if [[ -n "$hour" ]]; then
             hourly_traffic[$hour]=$((${hourly_traffic[$hour]:-0} + 1))
         fi
