@@ -167,6 +167,22 @@ generate_report() {
 
     log "BLUE" "Generating JSON report..."
 
+    # Handle empty log case
+    if [[ $total -eq 0 ]]; then
+        log "YELLOW" "No requests to analyze"
+        cat > "$report_file" << EOF
+{
+    "timestamp": "$(date -Iseconds)",
+    "summary": {
+        "total_requests": 0,
+        "message": "No requests found in log file"
+    }
+}
+EOF
+        log "GREEN" "Report generated: $report_file"
+        return 0
+    fi
+
     # Calculate error rate
     local error_rate=0
     if [[ $total -gt 0 ]]; then
@@ -174,16 +190,20 @@ generate_report() {
     fi
 
     # Get top 5 IPs
-    local top_ips
-    top_ips=$(for ip in "${!ip_counts[@]}"; do
-        echo "${ip_counts[$ip]} $ip"
-    done | sort -rn | head -5 | awk '{print "\"" $2 "\": " $1}' | paste -sd,)
+    local top_ips=""
+    if [[ -v ip_counts && ${#ip_counts[@]} -gt 0 ]]; then
+        top_ips=$(for ip in "${!ip_counts[@]}"; do
+            echo "${ip_counts[$ip]} $ip"
+        done | sort -rn | head -5 | awk '{print "\"" $2 "\": " $1}' | paste -sd,)
+    fi
 
     # Get top 5 endpoints
-    local top_endpoints
-    top_endpoints=$(for endpoint in "${!endpoint_counts[@]}"; do
-        echo "${endpoint_counts[$endpoint]} $endpoint"
-    done | sort -rn | head -5 | awk '{print "\"" $2 "\": " $1}' | paste -sd,)
+    local top_endpoints=""
+    if [[ -v endpoint_counts && ${#endpoint_counts[@]} -gt 0 ]]; then
+        top_endpoints=$(for endpoint in "${!endpoint_counts[@]}"; do
+            echo "${endpoint_counts[$endpoint]} $endpoint"
+        done | sort -rn | head -5 | awk '{print "\"" $2 "\": " $1}' | paste -sd,)
+    fi
 
     # Generate JSON report using heredoc
     cat > "$report_file" << EOF
@@ -215,9 +235,11 @@ generate_report() {
         $top_endpoints
     },
     "hourly_traffic": {
-$(for hour in $(echo "${!hourly_traffic[@]}" | tr ' ' '\n' | sort -n); do
-    echo "        \"$hour:00\": ${hourly_traffic[$hour]},"
-done | sed '$ s/,$//')
+$(if [[ -v hourly_traffic && ${#hourly_traffic[@]} -gt 0 ]]; then
+    for hour in $(echo "${!hourly_traffic[@]}" | tr ' ' '\n' | sort -n); do
+        echo "        \"$hour:00\": ${hourly_traffic[$hour]},"
+    done | sed '$ s/,$//'
+fi)
     }
 }
 EOF
