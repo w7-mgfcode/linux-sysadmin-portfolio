@@ -21,7 +21,6 @@ set -euo pipefail
 # Configuration
 #===============================================================================
 
-readonly SCRIPT_NAME=$(basename "$0")
 readonly SCRIPT_VERSION="1.0.0"
 
 # Service endpoints
@@ -60,10 +59,12 @@ log() {
 check_nginx() {
     log "BLUE" "Checking Nginx..."
 
-    local start_time=$(date +%s%3N)
+    local start_time
+    start_time=$(date +%s%3N)
 
     if curl -s -f --max-time $CURL_TIMEOUT "$NGINX_URL" >/dev/null 2>&1; then
-        local end_time=$(date +%s%3N)
+        local end_time
+        end_time=$(date +%s%3N)
         local response_time=$((end_time - start_time))
 
         log "GREEN" "✓ Nginx is healthy (${response_time}ms)"
@@ -80,7 +81,8 @@ check_php() {
     log "BLUE" "Checking PHP-FPM..."
 
     if php -v >/dev/null 2>&1; then
-        local php_version=$(php -r "echo PHP_VERSION;")
+        local php_version
+        php_version=$(php -r "echo PHP_VERSION;")
         log "GREEN" "✓ PHP-FPM is healthy (v$php_version)"
         echo "ok:$php_version"
         return 0
@@ -94,10 +96,12 @@ check_php() {
 check_mysql() {
     log "BLUE" "Checking MySQL..."
 
-    local start_time=$(date +%s%3N)
+    local start_time
+    start_time=$(date +%s%3N)
 
     if mysqladmin ping -h"$MYSQL_HOST" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --connect-timeout=$MYSQL_TIMEOUT >/dev/null 2>&1; then
-        local end_time=$(date +%s%3N)
+        local end_time
+        end_time=$(date +%s%3N)
         local response_time=$((end_time - start_time))
 
         # Get uptime
@@ -121,15 +125,22 @@ generate_report() {
     local overall_status=$4
 
     # Parse results
-    local nginx_status=$(echo "$nginx_result" | cut -d: -f1)
-    local nginx_time=$(echo "$nginx_result" | cut -d: -f2)
+    local nginx_status
+    nginx_status=$(echo "$nginx_result" | cut -d: -f1)
+    local nginx_time
+    nginx_time=$(echo "$nginx_result" | cut -d: -f2)
 
-    local php_status=$(echo "$php_result" | cut -d: -f1)
-    local php_version=$(echo "$php_result" | cut -d: -f2)
+    local php_status
+    php_status=$(echo "$php_result" | cut -d: -f1)
+    local php_version
+    php_version=$(echo "$php_result" | cut -d: -f2)
 
-    local mysql_status=$(echo "$mysql_result" | cut -d: -f1)
-    local mysql_uptime=$(echo "$mysql_result" | cut -d: -f2)
-    local mysql_time=$(echo "$mysql_result" | cut -d: -f3)
+    local mysql_status
+    mysql_status=$(echo "$mysql_result" | cut -d: -f1)
+    local mysql_uptime
+    mysql_uptime=$(echo "$mysql_result" | cut -d: -f2)
+    local mysql_time
+    mysql_time=$(echo "$mysql_result" | cut -d: -f3)
 
     cat << EOF
 {

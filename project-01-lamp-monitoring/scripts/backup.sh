@@ -23,19 +23,20 @@ set -euo pipefail
 # Configuration
 #===============================================================================
 
-readonly SCRIPT_NAME=$(basename "$0")
 readonly SCRIPT_VERSION="1.0.0"
 
 # MySQL Configuration
 readonly MYSQL_HOST="${MYSQL_HOST:-mysql}"
 readonly MYSQL_DATABASE="${MYSQL_DATABASE:-lampdb}"
-readonly MYSQL_USER="${MYSQL_USER:-root}"
-readonly MYSQL_PASSWORD="${MYSQL_PASSWORD:-}"
+# Use root credentials for backup operations (mysqldump requires privileges)
+readonly MYSQL_BACKUP_USER="${MYSQL_BACKUP_USER:-root}"
+readonly MYSQL_BACKUP_PASSWORD="${MYSQL_ROOT_PASSWORD:-${MYSQL_PASSWORD:-}}"
 
 # Backup Configuration
 readonly BACKUP_DIR="${BACKUP_DIR:-/backups}"
 readonly RETENTION_DAYS="${RETENTION_DAYS:-7}"
-readonly TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+readonly TIMESTAMP
 readonly BACKUP_FILE="${BACKUP_DIR}/${MYSQL_DATABASE}_${TIMESTAMP}.sql.gz"
 
 #===============================================================================
@@ -63,7 +64,7 @@ log() {
 check_mysql_connection() {
     log "BLUE" "Checking MySQL connection..."
 
-    if mysqladmin ping -h"$MYSQL_HOST" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" >/dev/null 2>&1; then
+    if mysqladmin ping -h"$MYSQL_HOST" -u"$MYSQL_BACKUP_USER" -p"$MYSQL_BACKUP_PASSWORD" >/dev/null 2>&1; then
         log "GREEN" "MySQL connection successful"
         return 0
     else
@@ -80,8 +81,8 @@ create_backup() {
 
     # Perform backup
     if mysqldump -h"$MYSQL_HOST" \
-        -u"$MYSQL_USER" \
-        -p"$MYSQL_PASSWORD" \
+        -u"$MYSQL_BACKUP_USER" \
+        -p"$MYSQL_BACKUP_PASSWORD" \
         --single-transaction \
         --routines \
         --triggers \
@@ -132,7 +133,7 @@ cleanup_old_backups() {
         rm -f "$file"
         log "YELLOW" "Deleted: $(basename "$file")"
         ((deleted++))
-    done < <(find "$BACKUP_DIR" -name "*.sql.gz" -type f -mtime +${RETENTION_DAYS} -print0)
+    done < <(find "$BACKUP_DIR" -name "*.sql.gz" -type f -mtime +"${RETENTION_DAYS}" -print0)
 
     if [[ $deleted -gt 0 ]]; then
         log "GREEN" "Deleted $deleted old backup(s)"
