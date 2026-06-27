@@ -10,6 +10,8 @@
 # Backups
 /backups/
 *.sql
+# ...but the database schema is source and must be tracked
+!mysql/init.sql
 *.tar.gz
 *.tgz
 

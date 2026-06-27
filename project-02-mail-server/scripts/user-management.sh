@@ -29,9 +29,11 @@ set -euo pipefail
 #===============================================================================
 # Configuration
 #===============================================================================
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
 
 # Source common library
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=./lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
@@ -187,9 +189,9 @@ user_add() {
     domain_id=$(mysql_query "SELECT id FROM virtual_domains WHERE name='$domain'")
 
     # Generate password hash
-    read -s -p "Enter password: " password
+    read -r -s -p "Enter password: " password
     echo
-    read -s -p "Confirm password: " password2
+    read -r -s -p "Confirm password: " password2
     echo
 
     if [[ "$password" != "$password2" ]]; then
@@ -266,9 +268,9 @@ user_set_password() {
 
     log_info "Setting password for: $email"
 
-    read -s -p "Enter new password: " password
+    read -r -s -p "Enter new password: " password
     echo
-    read -s -p "Confirm password: " password2
+    read -r -s -p "Confirm password: " password2
     echo
 
     if [[ "$password" != "$password2" ]]; then

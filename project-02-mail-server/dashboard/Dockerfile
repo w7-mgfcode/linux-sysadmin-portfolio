@@ -11,10 +11,8 @@ RUN apk add --no-cache \
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY default.conf /etc/nginx/http.d/default.conf
 
-# Configure PHP-FPM
-RUN sed -i 's/listen = 127.0.0.1:9000/listen = \/var\/run\/php-fpm.sock/' /usr/local/etc/php-fpm.d/www.conf \
-    && sed -i 's/;listen.owner = www-data/listen.owner = nginx/' /usr/local/etc/php-fpm.d/www.conf \
-    && sed -i 's/;listen.group = www-data/listen.group = nginx/' /usr/local/etc/php-fpm.d/www.conf
+# PHP-FPM listens on TCP 127.0.0.1:9000 (default from the base image's
+# zz-docker.conf); nginx connects to it over TCP — see default.conf.
 
 # Copy application files
 COPY index.php /var/www/html/

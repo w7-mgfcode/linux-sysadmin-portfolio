@@ -32,6 +32,7 @@ TOTAL_SUITES=0
 #------------------------------------------------------------------------------
 # Logging Functions
 #------------------------------------------------------------------------------
+# shellcheck disable=SC2317  # invoked indirectly (trap/dispatch)
 log() {
     local level=$1
     shift

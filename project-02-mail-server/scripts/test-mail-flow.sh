@@ -30,9 +30,11 @@ set -euo pipefail
 #===============================================================================
 # Configuration
 #===============================================================================
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
 
 # Source common library
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=./lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
@@ -48,9 +50,12 @@ readonly TEST_TO="${2:-jane@example.com}"
 readonly TEST_PASSWORD="password"
 
 # Test message
-readonly TEST_SUBJECT="Test Mail - $(date '+%Y%m%d-%H%M%S')"
-readonly TEST_BODY="This is a test message sent at $(date)"
-readonly MESSAGE_ID="<test-$(date +%s)@example.com>"
+TEST_SUBJECT="Test Mail - $(date '+%Y%m%d-%H%M%S')"
+readonly TEST_SUBJECT
+TEST_BODY="This is a test message sent at $(date)"
+readonly TEST_BODY
+MESSAGE_ID="<test-$(date +%s)@example.com>"
+readonly MESSAGE_ID
 
 # Temporary files
 readonly TEMP_DIR="/tmp/mail-flow-test-$$"

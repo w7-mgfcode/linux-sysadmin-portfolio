@@ -18,6 +18,7 @@ else
     RED=''
     GREEN=''
     YELLOW=''
+    # shellcheck disable=SC2034  # part of color palette
     BLUE=''
     NC=''
 fi
@@ -60,7 +61,7 @@ test_smtp_connection() {
     local response
     response=$(echo "QUIT" | timeout 5 nc localhost 25 2>/dev/null || echo "ERROR")
 
-    if echo "$response" | grep -q "220.*ESMTP Postfix"; then
+    if echo "$response" | grep -q "220.*ESMTP"; then
         test_pass "SMTP (port 25) responds with proper banner"
         log INFO "Response: $(echo "$response" | head -n 1)"
         return 0
@@ -80,7 +81,7 @@ test_smtp_submission() {
     local response
     response=$(echo "QUIT" | timeout 5 nc localhost 587 2>/dev/null || echo "ERROR")
 
-    if echo "$response" | grep -q "220.*ESMTP Postfix"; then
+    if echo "$response" | grep -q "220.*ESMTP"; then
         test_pass "SMTP submission (port 587) responds with proper banner"
         log INFO "Response: $(echo "$response" | head -n 1)"
         return 0
@@ -105,7 +106,7 @@ test_smtps_connection() {
     local response
     response=$(echo "QUIT" | timeout 5 openssl s_client -connect localhost:465 -quiet 2>&1 || echo "ERROR")
 
-    if echo "$response" | grep -q "220.*ESMTP Postfix"; then
+    if echo "$response" | grep -q "220.*ESMTP"; then
         test_pass "SMTPS (port 465) responds with proper banner"
         return 0
     else

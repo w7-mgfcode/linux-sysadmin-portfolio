@@ -4,6 +4,10 @@
 #               (yes)   (yes)   (no)    (never) (100)
 # ==========================================================================
 
+# Postlog - stdout logging service (required when maillog_file is set;
+# postfix logs via this datagram service instead of syslog in the container)
+postlog   unix-dgram n   -       n       -       1       postlogd
+
 # SMTP - port 25 (standard SMTP for MTA-to-MTA)
 smtp      inet  n       -       n       -       -       smtpd
 

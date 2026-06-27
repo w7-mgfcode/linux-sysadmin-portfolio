@@ -48,6 +48,7 @@ error() {
     echo -e "${RED}[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] [Validation] [ERROR]${NC} $*"
 }
 
+# shellcheck disable=SC2317  # invoked indirectly (trap/dispatch)
 success() {
     echo -e "${GREEN}[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] [Validation] [SUCCESS]${NC} $*"
 }
@@ -364,6 +365,7 @@ check_template_variables() {
     if [[ -f postfix/main.cf.template ]]; then
         # Look for ${} variables that aren't standard Postfix internal vars
         local suspicious_vars
+        # shellcheck disable=SC2016  # literal text intentional (grep patterns matching ${...} in template)
         suspicious_vars=$(grep -o '\${[^}]*}' postfix/main.cf.template 2>/dev/null | \
             grep -v '\${data_directory}' | \
             grep -v '\${queue_directory}' | \
