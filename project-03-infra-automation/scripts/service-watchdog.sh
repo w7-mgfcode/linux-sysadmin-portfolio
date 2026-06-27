@@ -33,14 +33,17 @@ set -euo pipefail
 
 # Source common library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
 #===============================================================================
 # Configuration
 #===============================================================================
+# shellcheck disable=SC2034  # version constant kept for documentation/reference
 readonly SCRIPT_VERSION="1.0.0"
-readonly SCRIPT_NAME="$(basename "$0")"
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
 readonly PID_FILE="/var/run/service-watchdog.pid"
 readonly CONFIG_FILE="${CONFIG_FILE:-/etc/service-watchdog.conf}"
 readonly LOG_FILE="/var/log/infra/service-watchdog.log"
@@ -308,7 +311,7 @@ restart_service() {
     # Execute restart
     log_info "Executing: $restart_cmd"
     if eval "$restart_cmd" 2>&1 | tee -a "$LOG_FILE"; then
-        ((restart_count++))
+        restart_count=$((restart_count + 1))
         service_restart_counts[$service_name]=$restart_count
         service_last_restart[$service_name]=$now
 
@@ -543,7 +546,7 @@ stop_daemon() {
     local count=0
     while kill -0 "$pid" 2>/dev/null && ((count < timeout)); do
         sleep 1
-        ((count++))
+        count=$((count + 1))
     done
 
     if kill -0 "$pid" 2>/dev/null; then
@@ -565,7 +568,7 @@ status_daemon() {
         if [[ -f "$STATE_FILE" ]]; then
             echo ""
             log_info "Service states:"
-            cat "$STATE_FILE" 2>/dev/null | head -20
+            head -20 "$STATE_FILE" 2>/dev/null
         fi
 
         exit 0

@@ -27,9 +27,10 @@ services:
       - BACKUP_DIR=/var/backups
     networks:
       - test-net
-    command: /bin/bash /entrypoint.sh
+    # No command override: the image ENTRYPOINT runs entrypoint.sh, whose final
+    # `exec "$@"` runs the Dockerfile CMD (sleep infinity) to keep the target up.
     healthcheck:
-      test: ["CMD", "test", "-f", "/var/run/ssh/sshd.pid"]
+      test: ["CMD", "test", "-f", "/var/run/sshd.pid"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -57,7 +58,8 @@ services:
       - BACKUP_DIR=/var/backups
     networks:
       - test-net
-    command: /bin/sh /entrypoint.sh
+    # No command override: ENTRYPOINT runs entrypoint.sh; its `exec "$@"` runs
+    # the Dockerfile CMD (sleep infinity) to keep the target up.
     healthcheck:
       test: ["CMD", "test", "-f", "/run/sshd.pid"]
       interval: 30s
@@ -87,7 +89,8 @@ services:
       - BACKUP_DIR=/var/backups
     networks:
       - test-net
-    command: /bin/bash /entrypoint.sh
+    # No command override: ENTRYPOINT runs entrypoint.sh; its `exec "$@"` runs
+    # the Dockerfile CMD (sleep infinity) to keep the target up.
     healthcheck:
       test: ["CMD", "test", "-f", "/var/run/sshd.pid"]
       interval: 30s
@@ -127,12 +130,10 @@ services:
       test-net:
         ipv4_address: 172.30.0.11
     command: -conf /Corefile
-    healthcheck:
-      test: ["CMD", "sh", "-c", "echo 'health' | nc -w 1 localhost 53"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+    # No container healthcheck: the official coredns image is FROM scratch (only
+    # the /coredns binary — no shell, nc, curl or wget), so an exec-based
+    # healthcheck cannot run. Liveness is provided by the Corefile `health :8080`
+    # plugin; the container is supervised by the restart policy.
 
 # =============================================================================
 # Networks

@@ -35,6 +35,7 @@ set -euo pipefail
 
 # Source common library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
@@ -42,7 +43,8 @@ source "${SCRIPT_DIR}/lib/common.sh"
 # Configuration
 #===============================================================================
 readonly SCRIPT_VERSION="1.0.0"
-readonly SCRIPT_NAME="$(basename "$0")"
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
 readonly REPORT_DIR="${REPORT_DIR:-/var/reports}"
 readonly TIMEOUT="${NETWORK_TIMEOUT_SECONDS:-10}"
 readonly MAX_HOPS="${NETWORK_MAX_HOPS:-30}"
@@ -117,27 +119,7 @@ version() {
     echo "$SCRIPT_NAME version $SCRIPT_VERSION"
 }
 
-print_table_header() {
-    local header="$1"
-    local width="${2:-60}"
-    printf "┌%s┐\n" "$(printf '%*s' "$width" '' | tr ' ' '─')"
-    printf "│ %-$((width-2))s │\n" "$header"
-    printf "├%s┤\n" "$(printf '%*s' "$width" '' | tr ' ' '─')"
-}
-
-print_table_row() {
-    local key="$1"
-    local value="$2"
-    local width="${3:-60}"
-    local key_width=$((width / 2 - 2))
-    local val_width=$((width - key_width - 5))
-    printf "│ %-${key_width}s │ %-${val_width}s │\n" "$key" "$value"
-}
-
-print_table_footer() {
-    local width="${1:-60}"
-    printf "└%s┘\n" "$(printf '%*s' "$width" '' | tr ' ' '─')"
-}
+# print_table_header/row/footer now live in lib/common.sh (shared)
 
 detect_tool() {
     local tool="$1"
@@ -231,8 +213,7 @@ cmd_connectivity() {
 
     # MTU Test (if ping supports it)
     log_info "Testing MTU..."
-    local mtu_test
-    if mtu_test=$($ping_cmd -c 1 -M do -s 1472 -W 2 "$host" 2>&1); then
+    if $ping_cmd -c 1 -M "do" -s 1472 -W 2 "$host" >/dev/null 2>&1; then
         print_table_row "MTU Test (1500)" "✓ Pass" 70
     else
         print_table_row "MTU Test (1500)" "✗ Fail (fragmentation needed)" 70
@@ -411,11 +392,11 @@ cmd_ports() {
         local status
         if check_port "$host" "$port" 2; then
             status="✓ Open"
-            ((open_count++))
+            open_count=$((open_count + 1))
             log_debug "Port $port: OPEN"
         else
             status="✗ Closed/Filtered"
-            ((closed_count++))
+            closed_count=$((closed_count + 1))
             log_debug "Port $port: CLOSED"
         fi
 
@@ -479,7 +460,8 @@ cmd_scan() {
 
 cmd_report() {
     ensure_directory "$REPORT_DIR"
-    local report_file="${REPORT_DIR}/network-diagnostics-$(timestamp_filename).json"
+    local report_file
+    report_file="${REPORT_DIR}/network-diagnostics-$(timestamp_filename).json"
 
     log_info "Generating comprehensive network diagnostics report..."
 

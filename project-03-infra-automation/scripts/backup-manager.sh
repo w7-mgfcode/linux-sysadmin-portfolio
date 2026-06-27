@@ -33,6 +33,7 @@ set -euo pipefail
 
 # Source common library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
@@ -40,7 +41,8 @@ source "${SCRIPT_DIR}/lib/common.sh"
 # Configuration
 #===============================================================================
 readonly SCRIPT_VERSION="1.0.0"
-readonly SCRIPT_NAME="$(basename "$0")"
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
 readonly DEFAULT_COMPRESSION="${BACKUP_COMPRESSION:-gzip}"
 readonly REPORT_DIR="${REPORT_DIR:-/var/reports}"
 
@@ -48,10 +50,6 @@ readonly REPORT_DIR="${REPORT_DIR:-/var/reports}"
 readonly RETENTION_DAILY="${BACKUP_RETENTION_DAYS:-7}"
 readonly RETENTION_WEEKLY="${BACKUP_RETENTION_WEEKS:-4}"
 readonly RETENTION_MONTHLY="${BACKUP_RETENTION_MONTHS:-6}"
-
-# State tracking
-declare -i TOTAL_SIZE=0
-declare -i FILES_BACKED_UP=0
 
 #===============================================================================
 # Helper Functions
@@ -186,8 +184,7 @@ cmd_full() {
     log_info "Compression: $compression"
 
     # Verify compression tool
-    local comp_tool
-    if ! comp_tool=$(detect_compression_tool "$compression"); then
+    if ! detect_compression_tool "$compression" >/dev/null; then
         return 1
     fi
 
@@ -250,7 +247,7 @@ EOF
     echo "$checksum  $(basename "$final_path")" > "${final_path}.sha256"
 
     log_success "Backup completed: $(basename "$final_path")"
-    log_info "Size: $(bytes_to_mb $(stat -c %s "$final_path" 2>/dev/null || stat -f %z "$final_path")) MB"
+    log_info "Size: $(bytes_to_mb "$(stat -c %s "$final_path" 2>/dev/null || stat -f %z "$final_path")") MB"
     log_info "Checksum: $checksum"
 
     # Generate report
@@ -361,7 +358,7 @@ EOF
     echo "$checksum  $(basename "$final_path")" > "${final_path}.sha256"
 
     log_success "Incremental backup completed: $(basename "$final_path")"
-    log_info "Size: $(bytes_to_mb $(stat -c %s "$final_path" 2>/dev/null || stat -f %z "$final_path")) MB"
+    log_info "Size: $(bytes_to_mb "$(stat -c %s "$final_path" 2>/dev/null || stat -f %z "$final_path")") MB"
 
     generate_backup_report "incremental" "$source" "$final_path" "$checksum"
 }
@@ -393,7 +390,7 @@ cmd_list() {
         size_mb=$(bytes_to_mb "$size")
 
         print_table_row "$basename" "${size_mb} MB" 80
-        ((count++))
+        count=$((count + 1))
     done < <(find "$destination" -name "*.tar.*" -type f 2>/dev/null | sort)
 
     print_table_footer 80
@@ -518,7 +515,7 @@ cmd_prune() {
         if ((age_days > RETENTION_DAILY)); then
             log_info "Deleting old backup: $(basename "$backup") (${age_days} days old)"
             rm -f "$backup" "${backup}.meta" "${backup}.sha256"
-            ((deleted++))
+            deleted=$((deleted + 1))
         fi
     done < <(find "$destination" -name "*.tar.*" -type f 2>/dev/null)
 
@@ -536,7 +533,8 @@ generate_backup_report() {
     local checksum="$4"
 
     ensure_directory "$REPORT_DIR"
-    local report_file="${REPORT_DIR}/backup-$(timestamp_filename).json"
+    local report_file
+    report_file="${REPORT_DIR}/backup-$(timestamp_filename).json"
 
     cat > "$report_file" << EOF
 {
