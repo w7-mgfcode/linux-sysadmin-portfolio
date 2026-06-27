@@ -78,8 +78,6 @@ temp/
 dist/
 build/
 
-# Claude Code local files (keep settings but not caches)
-.claude/plans/
-!.claude/settings.local.json
-!.claude/commands/
-!.claude/agents/
+# Agent/assistant local files (not tracked)
+.claude/
+CLAUDE.md
