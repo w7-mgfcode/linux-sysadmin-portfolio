@@ -373,6 +373,12 @@ echo "Exit code: $?"
 }
 ```
 
+**Note | Megjegyzés:**
+
+**English:** Human-readable logs (the colored console output shown above) are written to **stderr**, while the JSON report is emitted on **stdout**. This keeps stdout clean and valid JSON, so the report can be safely captured or piped (e.g. `... /scripts/health-check.sh | jq .`) without log lines corrupting it.
+
+**Magyar:** Az ember által olvasható naplók (a fent látható színkódolt konzol kimenet) a **stderr**-re íródnak, míg a JSON jelentés a **stdout**-ra kerül. Ez tisztán és érvényes JSON-ként tartja a stdout-ot, így a jelentés biztonságosan elkapható vagy csővezetékbe irányítható (pl. `... /scripts/health-check.sh | jq .`) anélkül, hogy a naplósorok megrongálnák.
+
 ### Exit Codes | Kilépési Kódok
 
 | Exit Code | Meaning (EN) | Jelentés (HU) |

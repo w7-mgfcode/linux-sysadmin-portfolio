@@ -53,6 +53,7 @@ docker compose exec php /scripts/health-check.sh
 # Access services
 # Dashboard: http://localhost
 # Adminer: http://localhost:8080
+# Note: Adminer is bound to loopback (127.0.0.1) only — reachable from the host, not from external networks
 ```
 
 **Magyar:**
@@ -79,6 +80,7 @@ docker compose exec php /scripts/health-check.sh
 # Szolgáltatások elérése
 # Vezérlőpult: http://localhost
 # Adminer: http://localhost:8080
+# Megjegyzés: Az Adminer csak a loopback-hez (127.0.0.1) van kötve — a host-ról elérhető, külső hálózatokról nem
 ```
 
 ---
