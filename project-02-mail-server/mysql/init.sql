@@ -9,11 +9,11 @@
 -- NOTE: `enabled` columns on virtual_domains and virtual_aliases are required
 -- by the Postfix MySQL maps (`... WHERE name=%s AND enabled=1`); they extend
 -- the base schema documented in docs/ARCHITECTURE.md.
+--
+-- The MySQL image already creates and selects ${MYSQL_DATABASE} before running
+-- this script, so we do NOT hardcode `USE mailserver` — the tables land in the
+-- configured database, whatever it is named.
 -- ============================================================================
-
-CREATE DATABASE IF NOT EXISTS mailserver
-    CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE mailserver;
 
 -- ----------------------------------------------------------------------------
 -- Virtual domains
@@ -53,7 +53,9 @@ CREATE TABLE IF NOT EXISTS virtual_aliases (
     enabled TINYINT(1) DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (domain_id) REFERENCES virtual_domains(id) ON DELETE CASCADE,
-    INDEX idx_source (source)
+    -- Composite index matches the Postfix lookup `WHERE source=%s AND enabled=1`
+    -- (source is not unique, unlike domains.name / users.email).
+    INDEX idx_source_enabled (source, enabled)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------

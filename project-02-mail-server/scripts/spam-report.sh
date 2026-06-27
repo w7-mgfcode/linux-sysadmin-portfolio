@@ -109,15 +109,15 @@ categorize_score() {
     # Use literal string keys with explicit assignment: inside (( )) the "+" in
     # the "10+" subscript breaks parsing (SC1105), so avoid arithmetic subscripts.
     if (( $(echo "$score < 1" | bc -l) )); then
-        score_buckets["0-1"]=$(( ${score_buckets["0-1"]} + 1 ))
+        score_buckets["0-1"]=$(( ${score_buckets["0-1"]:-0} + 1 ))
     elif (( $(echo "$score < 2" | bc -l) )); then
-        score_buckets["1-2"]=$(( ${score_buckets["1-2"]} + 1 ))
+        score_buckets["1-2"]=$(( ${score_buckets["1-2"]:-0} + 1 ))
     elif (( $(echo "$score < 5" | bc -l) )); then
-        score_buckets["2-5"]=$(( ${score_buckets["2-5"]} + 1 ))
+        score_buckets["2-5"]=$(( ${score_buckets["2-5"]:-0} + 1 ))
     elif (( $(echo "$score < 10" | bc -l) )); then
-        score_buckets["5-10"]=$(( ${score_buckets["5-10"]} + 1 ))
+        score_buckets["5-10"]=$(( ${score_buckets["5-10"]:-0} + 1 ))
     else
-        score_buckets["10+"]=$(( ${score_buckets["10+"]} + 1 ))
+        score_buckets["10+"]=$(( ${score_buckets["10+"]:-0} + 1 ))
     fi
 }
 
