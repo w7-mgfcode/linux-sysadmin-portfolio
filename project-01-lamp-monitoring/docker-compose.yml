@@ -83,7 +83,9 @@ services:
     container_name: lamp-adminer
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      # Bind to loopback only: Adminer is a high-privilege DB UI, so it must not
+      # be reachable from untrusted networks (host-local access only).
+      - "127.0.0.1:8080:8080"
     environment:
       - ADMINER_DEFAULT_SERVER=mysql
     networks:
@@ -92,8 +94,9 @@ services:
     depends_on:
       - mysql
     healthcheck:
-      # adminer image ships no curl/wget; use bundled PHP to probe the app
-      test: ["CMD-SHELL", "php -r 'exit(@file_get_contents(\"http://localhost:8080/\")===false?1:0);'"]
+      # adminer image ships no curl/wget; use bundled PHP to probe the app.
+      # default_socket_timeout caps the probe well under the healthcheck timeout.
+      test: ["CMD-SHELL", "php -d default_socket_timeout=2 -r 'exit(@file_get_contents(\"http://localhost:8080/\")===false?1:0);'"]
       interval: 30s
       timeout: 10s
       retries: 3
