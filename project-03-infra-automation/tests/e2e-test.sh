@@ -28,8 +28,10 @@
 set -euo pipefail
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+readonly PROJECT_ROOT
 readonly SCRIPTS_DIR="${PROJECT_ROOT}/scripts"
 readonly RESULTS_DIR="${PROJECT_ROOT}/test-results"
 
@@ -158,19 +160,22 @@ run_test() {
     local test_name="$1"
     local test_func="$2"
 
-    ((TESTS_RUN++))
+    TESTS_RUN=$((TESTS_RUN + 1))
     log_test "Running: $test_name"
 
     if $test_func; then
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
         log_pass "$test_name"
         tap_ok "$TESTS_RUN" "$test_name"
         return 0
     else
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
         log_fail "$test_name"
         tap_not_ok "$TESTS_RUN" "$test_name"
-        return 1
+        # Record the failure but return success so `set -e` doesn't abort the
+        # whole suite on the first failing test; final exit is driven by
+        # TESTS_FAILED in the summary.
+        return 0
     fi
 }
 
@@ -178,8 +183,8 @@ skip_test() {
     local test_name="$1"
     local reason="$2"
 
-    ((TESTS_RUN++))
-    ((TESTS_SKIPPED++))
+    TESTS_RUN=$((TESTS_RUN + 1))
+    TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
     log_skip "$test_name - $reason"
     tap_skip "$TESTS_RUN" "$reason"
 }
@@ -198,7 +203,8 @@ test_common_lib_syntax() {
 
 test_common_lib_functions() {
     # Source and test key functions exist
-    local test_script=$(cat << 'EOF'
+    local test_script
+    test_script=$(cat << 'EOF'
 source /scripts/lib/common.sh
 type -t log_info >/dev/null && \
 type -t detect_os >/dev/null && \
@@ -228,15 +234,15 @@ test_server_hardening_help() {
 }
 
 test_server_hardening_dry_run() {
-    # Test dry-run mode doesn't make changes
-    docker_exec_test "infra-debian-target" "/scripts/server-hardening.sh --dry-run all" >/dev/null 2>&1
+    # --check is the script's audit/dry-run mode (no changes); runs all modules
+    docker_exec_test "infra-debian-target" "/scripts/server-hardening.sh --check" >/dev/null 2>&1
 }
 
 test_server_hardening_modules() {
     local modules=("ssh" "kernel" "firewall" "permissions" "users")
 
     for module in "${modules[@]}"; do
-        if ! docker_exec_test "infra-debian-target" "/scripts/server-hardening.sh --dry-run $module" >/dev/null 2>&1; then
+        if ! docker_exec_test "infra-debian-target" "/scripts/server-hardening.sh --check --modules $module" >/dev/null 2>&1; then
             return 1
         fi
     done
@@ -245,9 +251,9 @@ test_server_hardening_modules() {
 }
 
 test_server_hardening_report() {
-    # Test report generation
-    docker_exec_test "infra-debian-target" "/scripts/server-hardening.sh --dry-run --report /tmp/hardening-report.json all" >/dev/null 2>&1 && \
-    docker_exec_test "infra-debian-target" "test -f /tmp/hardening-report.json"
+    # The script writes a JSON report to $REPORT_DIR (hardening-<timestamp>.json)
+    docker_exec_test "infra-debian-target" \
+        "rm -rf /tmp/hrep && REPORT_DIR=/tmp/hrep /scripts/server-hardening.sh --check >/dev/null 2>&1 && ls /tmp/hrep/hardening-*.json >/dev/null 2>&1"
 }
 
 #===============================================================================
@@ -284,8 +290,8 @@ test_network_diagnostics_routes() {
 }
 
 test_network_diagnostics_ports() {
-    # Test port listing
-    docker_exec_test "infra-debian-target" "/scripts/network-diagnostics.sh ports" >/dev/null 2>&1
+    # The `ports` subcommand requires a host argument
+    docker_exec_test "infra-debian-target" "/scripts/network-diagnostics.sh ports localhost" >/dev/null 2>&1
 }
 
 #===============================================================================
@@ -337,7 +343,8 @@ test_backup_manager_help() {
 
 test_backup_manager_full_backup() {
     # Create test data and backup
-    local test_script=$(cat << 'EOF'
+    local test_script
+    test_script=$(cat << 'EOF'
 mkdir -p /tmp/test-backup-source /tmp/test-backup-dest
 echo "test data" > /tmp/test-backup-source/testfile.txt
 /scripts/backup-manager.sh full /tmp/test-backup-source /tmp/test-backup-dest
@@ -353,7 +360,8 @@ test_backup_manager_list() {
 
 test_backup_manager_verify() {
     # Test verify command on last backup
-    local verify_script=$(cat << 'EOF'
+    local verify_script
+    verify_script=$(cat << 'EOF'
 BACKUP_FILE=$(find /tmp/test-backup-dest -name "*.tar.gz" -o -name "*.tar.xz" -o -name "*.tar.zst" | head -1)
 if [[ -n "$BACKUP_FILE" ]]; then
     /scripts/backup-manager.sh verify "$BACKUP_FILE"
@@ -392,7 +400,8 @@ test_log_rotation_generate_config() {
 
 test_log_rotation_check() {
     # Create test log file and check it
-    local test_script=$(cat << 'EOF'
+    local test_script
+    test_script=$(cat << 'EOF'
 mkdir -p /tmp/test-logs
 echo "test log entry" > /tmp/test-logs/test.log
 /scripts/log-rotation.sh check /tmp/test-logs/test.log 1M 30
@@ -469,8 +478,9 @@ test_multi_os_ubuntu() {
 
 test_integration_hardening_and_inventory() {
     # Run hardening in dry-run, then collect inventory
-    local integration_script=$(cat << 'EOF'
-/scripts/server-hardening.sh --dry-run all >/dev/null 2>&1 && \
+    local integration_script
+    integration_script=$(cat << 'EOF'
+/scripts/server-hardening.sh --check >/dev/null 2>&1 && \
 /scripts/system-inventory.sh collect --output /tmp/post-hardening.json >/dev/null 2>&1 && \
 test -f /tmp/post-hardening.json
 EOF
@@ -480,12 +490,16 @@ EOF
 
 test_integration_backup_and_verify() {
     # Create backup and verify in one flow
-    local integration_script=$(cat << 'EOF'
+    local integration_script
+    integration_script=$(cat << 'EOF'
 mkdir -p /tmp/integration-test
 echo "integration test" > /tmp/integration-test/data.txt
-BACKUP_NAME=$(/scripts/backup-manager.sh full /tmp/integration-test /tmp/integration-backup 2>&1 | grep "Backup completed:" | awk '{print $NF}')
-if [[ -n "$BACKUP_NAME" ]]; then
-    BACKUP_FILE="/tmp/integration-backup/$BACKUP_NAME"
+rm -rf /tmp/integration-backup
+/scripts/backup-manager.sh full /tmp/integration-test /tmp/integration-backup >/dev/null 2>&1
+# Locate the created archive directly (avoids parsing colored log output, and
+# uses compgen glob expansion instead of parsing `ls`)
+BACKUP_FILE=$(compgen -G "/tmp/integration-backup/*.tar.gz" | head -1)
+if [[ -n "$BACKUP_FILE" ]]; then
     /scripts/backup-manager.sh verify "$BACKUP_FILE"
 else
     exit 1
@@ -598,7 +612,8 @@ generate_report() {
 
     # Save results
     mkdir -p "$RESULTS_DIR"
-    local report_file="${RESULTS_DIR}/test-results-$(date +%Y%m%d_%H%M%S).json"
+    local report_file
+    report_file="${RESULTS_DIR}/test-results-$(date +%Y%m%d_%H%M%S).json"
 
     cat > "$report_file" << EOF
 {
@@ -660,10 +675,12 @@ main() {
                 shift
                 ;;
             --script)
+                # shellcheck disable=SC2034  # reserved for per-script filtering option
                 TARGET_SCRIPT="$2"
                 shift 2
                 ;;
             --target)
+                # shellcheck disable=SC2034  # reserved for per-target-OS filtering option
                 TARGET_OS="$2"
                 shift 2
                 ;;

@@ -33,14 +33,17 @@ set -euo pipefail
 
 # Source common library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
 #===============================================================================
 # Configuration
 #===============================================================================
+# shellcheck disable=SC2034  # version constant kept for documentation/reference
 readonly SCRIPT_VERSION="1.0.0"
-readonly SCRIPT_NAME="$(basename "$0")"
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
 readonly INVENTORY_DIR="${INVENTORY_DIR:-/var/lib/inventory}"
 readonly INVENTORY_FORMAT="${INVENTORY_FORMAT:-json}"
 
@@ -71,7 +74,7 @@ collect_cpu_info() {
     if [[ -f /proc/cpuinfo ]]; then
         cpu_model=$(grep "model name" /proc/cpuinfo | head -1 | cut -d: -f2 | xargs)
         cpu_cores=$(grep "^cpu cores" /proc/cpuinfo | head -1 | awk '{print $4}')
-        cpu_threads=$(grep "^processor" /proc/cpuinfo | wc -l)
+        cpu_threads=$(grep -c "^processor" /proc/cpuinfo)
         cpu_vendor=$(grep "vendor_id" /proc/cpuinfo | head -1 | cut -d: -f2 | xargs)
     else
         cpu_model="Unknown"
@@ -137,7 +140,7 @@ collect_disk_info() {
         read -r filesystem size used avail use_pct mount <<< "$line"
 
         if [[ -n "$filesystem" && "$filesystem" != "Filesystem" ]]; then
-            ((disk_count++))
+            disk_count=$((disk_count + 1))
             disk_data+="$filesystem|$size|$used|$avail|$use_pct|$mount;"
         fi
     done < <(df -h 2>/dev/null | grep "^/")
@@ -296,7 +299,7 @@ collect_service_info() {
         openrc)
             if command -v rc-status &>/dev/null; then
                 running_services=$(rc-status -s 2>/dev/null | grep "started" | awk '{print $1}' | tr '\n' ',' || echo "")
-                service_count=$(rc-status -s 2>/dev/null | grep "started" | wc -l)
+                service_count=$(rc-status -s 2>/dev/null | grep -c "started")
             fi
             ;;
         *)

@@ -160,7 +160,7 @@ check_dependencies() {
 
     for cmd in "${deps[@]}"; do
         if ! check_command "$cmd" 2>/dev/null; then
-            ((missing++))
+            missing=$((missing + 1))
         fi
     done
 
@@ -260,7 +260,8 @@ backup_file() {
     timestamp=$(timestamp_filename)
 
     if [[ -f "$file" ]]; then
-        local backup_path="${backup_dir}/$(basename "$file").backup.${timestamp}"
+        local backup_path
+        backup_path="${backup_dir}/$(basename "$file").backup.${timestamp}"
         cp -p "$file" "$backup_path"
         log_debug "Backed up: $file → $backup_path"
         echo "$backup_path"
@@ -405,6 +406,31 @@ confirm() {
     fi
 
     [[ "$response" == "y" || "$response" == "yes" ]]
+}
+
+#===============================================================================
+# Table formatting helpers (shared by network-diagnostics, backup-manager, ...)
+#===============================================================================
+print_table_header() {
+    local header="$1"
+    local width="${2:-60}"
+    printf "┌%s┐\n" "$(printf '%*s' "$width" '' | tr ' ' '─')"
+    printf "│ %-$((width-2))s │\n" "$header"
+    printf "├%s┤\n" "$(printf '%*s' "$width" '' | tr ' ' '─')"
+}
+
+print_table_row() {
+    local key="$1"
+    local value="$2"
+    local width="${3:-60}"
+    local key_width=$((width / 2 - 2))
+    local val_width=$((width - key_width - 5))
+    printf "│ %-${key_width}s │ %-${val_width}s │\n" "$key" "$value"
+}
+
+print_table_footer() {
+    local width="${1:-60}"
+    printf "└%s┘\n" "$(printf '%*s' "$width" '' | tr ' ' '─')"
 }
 
 #===============================================================================

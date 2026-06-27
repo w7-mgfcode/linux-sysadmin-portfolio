@@ -33,6 +33,7 @@ set -euo pipefail
 
 # Source common library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
@@ -40,8 +41,10 @@ source "${SCRIPT_DIR}/lib/common.sh"
 # Configuration
 #===============================================================================
 readonly SCRIPT_VERSION="1.0.0"
-readonly SCRIPT_NAME="$(basename "$0")"
-readonly BACKUP_DIR="${BACKUP_DIR:-/var/backups/hardening}/$(timestamp_filename)"
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
+BACKUP_DIR="${BACKUP_DIR:-/var/backups/hardening}/$(timestamp_filename)"
+readonly BACKUP_DIR
 readonly REPORT_DIR="${REPORT_DIR:-/var/reports}"
 readonly LOG_FILE="/var/log/infra/server-hardening.log"
 
@@ -107,17 +110,17 @@ log_to_file() {
 }
 
 track_change() {
-    ((CHANGES_MADE++))
+    CHANGES_MADE=$((CHANGES_MADE + 1))
     log_to_file "CHANGE: $*"
 }
 
 track_error() {
-    ((ERRORS++))
+    ERRORS=$((ERRORS + 1))
     log_to_file "ERROR: $*"
 }
 
 track_warning() {
-    ((WARNINGS++))
+    WARNINGS=$((WARNINGS + 1))
     log_to_file "WARNING: $*"
 }
 
@@ -512,7 +515,7 @@ audit_permissions() {
         if [[ "$current" != "$expected" ]]; then
             log_warning "Incorrect permissions on $file: $current (expected: $expected)"
             track_warning "Permission issue: $file"
-            ((issues++))
+            issues=$((issues + 1))
 
             if [[ "$AUTO_FIX" == "true" && "$DRY_RUN" == "false" ]]; then
                 chmod "$expected" "$file"
@@ -534,7 +537,7 @@ audit_permissions() {
         while IFS= read -r file; do
             log_warning "  $file"
             track_warning "World-writable file: $file"
-            ((issues++))
+            issues=$((issues + 1))
         done <<< "$ww_files"
     else
         log_success "No world-writable files found in /etc or /usr"
@@ -569,7 +572,7 @@ audit_users() {
         while IFS= read -r user; do
             log_warning "  $user"
             track_warning "Empty password: $user"
-            ((issues++))
+            issues=$((issues + 1))
         done <<< "$empty_pass"
     else
         log_success "No users with empty passwords"
@@ -585,7 +588,7 @@ audit_users() {
         while IFS= read -r user; do
             log_error "  $user"
             track_error "UID 0 user: $user"
-            ((issues++))
+            issues=$((issues + 1))
         done <<< "$uid_zero"
     else
         log_success "No unauthorized UID 0 users"
@@ -630,7 +633,8 @@ audit_users() {
 #===============================================================================
 
 generate_report() {
-    local report_file="${REPORT_DIR}/hardening-$(timestamp_filename).json"
+    local report_file
+    report_file="${REPORT_DIR}/hardening-$(timestamp_filename).json"
 
     log_info "Generating report: $report_file"
 

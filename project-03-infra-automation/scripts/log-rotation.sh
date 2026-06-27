@@ -35,14 +35,15 @@ set -euo pipefail
 
 # Source common library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
 #===============================================================================
 # Configuration
 #===============================================================================
-readonly SCRIPT_VERSION="1.0.0"
-readonly SCRIPT_NAME="$(basename "$0")"
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
 readonly DEFAULT_CONFIG="/etc/logrotate-custom.conf"
 readonly STATE_DIR="/var/lib/logrotate-custom"
 readonly DEFAULT_MAX_SIZE="100M"
@@ -51,7 +52,6 @@ readonly DEFAULT_RETENTION="90"
 
 # Compression settings
 COMPRESSION="${LOG_COMPRESSION:-gzip}"
-COMPRESSION_EXT=".gz"
 COMPRESSION_CMD="gzip -9"
 COMPRESSION_DELAY="${COMPRESSION_DELAY:-1}"  # Days to wait before compression
 
@@ -121,7 +121,7 @@ parse_config() {
     local line_num=0
 
     while IFS= read -r line; do
-        ((line_num++))
+        line_num=$((line_num + 1))
 
         # Skip comments and empty lines
         [[ "$line" =~ ^[[:space:]]*# ]] && continue
@@ -292,7 +292,8 @@ record_rotation() {
 
     ensure_state_dir
 
-    local state_file="${STATE_DIR}/$(basename "$log_file").state"
+    local state_file
+    state_file="${STATE_DIR}/$(basename "$log_file").state"
     local timestamp
     timestamp=$(timestamp_iso)
 
@@ -320,28 +321,22 @@ setup_compression() {
     case "$compression_type" in
         gzip)
             COMPRESSION_CMD="gzip -9"
-            COMPRESSION_EXT=".gz"
             ;;
         bzip2)
             COMPRESSION_CMD="bzip2 -9"
-            COMPRESSION_EXT=".bz2"
             ;;
         xz)
             COMPRESSION_CMD="xz -9"
-            COMPRESSION_EXT=".xz"
             ;;
         zstd)
             COMPRESSION_CMD="zstd -19 --rm"
-            COMPRESSION_EXT=".zst"
             ;;
         none)
             COMPRESSION_CMD=""
-            COMPRESSION_EXT=""
             ;;
         *)
             log_warning "Unknown compression type: $compression_type, using gzip"
             COMPRESSION_CMD="gzip -9"
-            COMPRESSION_EXT=".gz"
             ;;
     esac
 }
@@ -377,7 +372,7 @@ compress_rotated_logs() {
             log_info "Compressing: $log_file"
 
             if eval "$COMPRESSION_CMD \"$log_file\"" 2>&1 | tee -a /var/log/infra/log-rotation.log; then
-                ((count++))
+                count=$((count + 1))
                 log_success "Compressed: $log_file"
             else
                 log_error "Compression failed: $log_file"
@@ -412,7 +407,7 @@ prune_old_logs() {
             log_info "Removing: $log_file"
 
             if rm -f "$log_file"; then
-                ((count++))
+                count=$((count + 1))
                 log_success "Removed: $log_file"
             else
                 log_error "Failed to remove: $log_file"
@@ -439,13 +434,13 @@ generate_statistics() {
     local compressed_size=0
 
     while IFS= read -r -d '' log_file; do
-        ((total_logs++))
+        total_logs=$((total_logs + 1))
         local size
         size=$(get_file_size "$log_file")
         ((total_size += size))
 
         if [[ "$log_file" =~ \.(gz|bz2|xz|zst)$ ]]; then
-            ((compressed_logs++))
+            compressed_logs=$((compressed_logs + 1))
             ((compressed_size += size))
         fi
     done < <(find "$directory" -type f -name "*.log.*" -print0 2>/dev/null || true)
@@ -523,7 +518,7 @@ cmd_rotate() {
 
         if needs_rotation "$log_file" "$max_size" "$max_age"; then
             if rotate_log "$log_file" "$signal" "$pidfile" "$postrotate"; then
-                ((rotated_count++))
+                rotated_count=$((rotated_count + 1))
             fi
         else
             log_debug "No rotation needed for: $log_file"
@@ -554,7 +549,7 @@ cmd_check() {
     max_size_bytes=$(parse_size "$max_size")
 
     echo "File: $log_file"
-    echo "Size: $(bytes_to_mb $file_size) MB (threshold: $max_size)"
+    echo "Size: $(bytes_to_mb "$file_size") MB (threshold: $max_size)"
     echo "Age: ${file_age} days (threshold: ${max_age} days)"
 
     if needs_rotation "$log_file" "$max_size" "$max_age"; then
