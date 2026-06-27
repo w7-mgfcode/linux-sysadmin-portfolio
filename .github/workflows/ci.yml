@@ -1,0 +1,80 @@
+name: CI
+
+# Continuous integration for the Linux Sysadmin Portfolio.
+# Two independent gates mirror the local validation workflow:
+#   1. shellcheck — static analysis of every Bash script (pinned to v0.10.0)
+#   2. compose-validate — `docker compose config` for each project stack
+#
+# These job names ("ShellCheck" and "Compose Validate") are the status-check
+# contexts intended to be required by the `main` branch protection rule.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    env:
+      SHELLCHECK_VERSION: v0.10.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install ShellCheck ${{ env.SHELLCHECK_VERSION }}
+        run: |
+          set -euo pipefail
+          url="https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+          curl -fsSL "$url" | tar -xJ
+          sudo install -m 0755 "shellcheck-${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/shellcheck
+          shellcheck --version
+
+      - name: Run ShellCheck on all scripts
+        run: |
+          set -uo pipefail
+          status=0
+          # -x follows `source`d files (e.g. lib/common.sh); severity=warning
+          # fails on warnings/errors while allowing advisory info/style notes.
+          while IFS= read -r script; do
+            echo "::group::shellcheck $script"
+            if ! shellcheck -x --severity=warning "$script"; then
+              status=1
+            fi
+            echo "::endgroup::"
+          done < <(find . -type f -name '*.sh' -not -path './.git/*' | sort)
+          if [ "$status" -ne 0 ]; then
+            echo "::error::ShellCheck reported warnings or errors"
+          fi
+          exit "$status"
+
+  compose-validate:
+    name: Compose Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate each docker-compose.yml
+        run: |
+          set -euo pipefail
+          docker compose version
+          for dir in project-01-lamp-monitoring project-02-mail-server project-03-infra-automation; do
+            compose="$dir/docker-compose.yml"
+            [ -f "$compose" ] || { echo "::error::missing $compose"; exit 1; }
+            # Provide a .env so variable interpolation resolves like a real deploy.
+            [ -f "$dir/.env" ] || cp "$dir/.env.example" "$dir/.env"
+            echo "::group::docker compose config — $dir"
+            docker compose -f "$compose" --project-directory "$dir" config --quiet
+            echo "::endgroup::"
+          done
+          echo "All compose files are valid."

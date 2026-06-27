@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation | Dokumentáció
+    url: https://github.com/w7-mgfcode/linux-sysadmin-portfolio/tree/main/docs
+    about: Read the architecture, deployment, scripts and testing docs first. | Először olvasd el a dokumentációt.
