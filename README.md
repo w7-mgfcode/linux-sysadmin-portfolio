@@ -139,7 +139,7 @@ docker compose logs -f
 **Key Features:**
 - MySQL-backed virtual users with bcrypt password hashing
 - SSL/TLS encryption (self-signed, Let's Encrypt ready)
-- Spam filtering with Bayes learning
+- SpamAssassin spam-scanning service (`spamd`); for inbound SMTP-time filtering, wire it in via `spamass-milter` or a `content_filter`
 - Real-time monitoring dashboard (PHP 8.2)
 - Comprehensive test suite (e2e + mail flow)
 - Network isolation (backend internal only)
@@ -162,7 +162,7 @@ docker compose logs -f
 - Production-ready with TAP test output and multi-OS support
 
 **Key Scripts:**
-- `server-hardening.sh` (781 lines) - ⭐ PRIMARY SHOWCASE - 5 security modules (SSH, kernel, firewall, permissions, users), idempotent, dry-run mode
+- `server-hardening.sh` (781 lines) - ⭐ PRIMARY SHOWCASE - 5 security modules (SSH, kernel, firewall, permissions, users), idempotent, audit/dry-run mode (`--check`)
 - `network-diagnostics.sh` (588 lines) - Git-style subcommands for connectivity, DNS, routes, ports, scanning with ASCII tables
 - `service-watchdog.sh` (647 lines) - Daemon mode monitoring with PID management, signal handling, exponential backoff, webhook alerts
 - `backup-manager.sh` (619 lines) - Full/incremental backups, SHA256 verification, GFS retention, multiple compression (gzip/xz/zstd)
@@ -183,6 +183,25 @@ docker compose logs -f
 - Automated service recovery with restart limits
 
 **[View Full Documentation →](./project-03-infra-automation/README.md)**
+
+---
+
+## Documentation | Dokumentáció
+
+**English:** All three projects have been validated end-to-end (shellcheck, container health checks, project test suites, and endpoint smoke tests). The cross-project documentation lives in [`docs/`](./docs/):
+
+**Magyar:** Mindhárom projekt végponttól-végpontig validálva lett (shellcheck, konténer állapotellenőrzések, projekt tesztcsomagok és végpont füsttesztek). A projekteken átívelő dokumentáció a [`docs/`](./docs/) könyvtárban található:
+
+| Document | Description (EN) | Leírás (HU) |
+|----------|------------------|-------------|
+| [CHANGELOG.md](./docs/CHANGELOG.md) | End-to-end test/repair/validate history | Végponttól-végpontig teszt/javítás/validálás történet |
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | System architecture & design decisions | Rendszerarchitektúra és tervezési döntések |
+| [DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Deployment guide | Telepítési útmutató |
+| [SCRIPTS.md](./docs/SCRIPTS.md) | Bash script reference | Bash script referencia |
+| [PROJECT-01-TESTING.md](./docs/PROJECT-01-TESTING.md) | Project 01 validation results | Projekt 01 validálási eredmények |
+| [PROJECT-02-TESTING.md](./docs/PROJECT-02-TESTING.md) | Project 02 validation results | Projekt 02 validálási eredmények |
+| [PROJECT-03-TESTING.md](./docs/PROJECT-03-TESTING.md) | Project 03 validation results | Projekt 03 validálási eredmények |
+| [CONTRIBUTING.md](./docs/CONTRIBUTING.md) | Contribution guidelines | Hozzájárulási irányelvek |
 
 ---
 

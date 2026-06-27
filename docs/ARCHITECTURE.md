@@ -71,11 +71,12 @@ Ez a dokumentum átfogó architektúra áttekintést nyújt a Linux Rendszergazd
 │  └────────────────────────────────────────────────────────────┘    │
 │                                                                      │
 │  ┌────────────────────────────────────────────────────────────┐    │
-│  │  Adminer (adminer:latest)                                   │    │
+│  │  Adminer (adminer:4.8.1)                                    │    │
 │  │  ───────────────────────────────────────────────────────   │    │
 │  │  Role: Database Management UI                               │    │
-│  │  Port: 8080 (HTTP)                                         │    │
-│  │  Networks: backend                                          │    │
+│  │  Port: 127.0.0.1:8080 (HTTP, loopback only)               │    │
+│  │  Networks: frontend, backend                                │    │
+│  │  Reason: frontend to publish port, backend to reach MySQL │    │
 │  │  Note: Development/admin tool only                         │    │
 │  └────────────────────────────────────────────────────────────┘    │
 │                                                                      │
@@ -93,12 +94,14 @@ The LAMP stack uses a dual-network architecture for security:
    - Contains: Nginx, PHP-FPM, Adminer
    - Allows external HTTP/HTTPS traffic
    - Enables inter-container communication
+   - Adminer joins this network so its published port can be reached from the host
 
 2. **Backend Network (internal mode)**
    - NOT accessible from host
    - Contains: PHP-FPM, MySQL, Adminer
    - Isolated database access
    - Security: MySQL cannot be directly accessed from outside
+   - Adminer also joins this network so it can reach MySQL (which is backend-only)
 
 **Magyar:**
 
@@ -109,12 +112,14 @@ A LAMP stack kettős hálózati architektúrát használ a biztonság érdekébe
    - Tartalmazza: Nginx, PHP-FPM, Adminer
    - Engedélyezi a külső HTTP/HTTPS forgalmat
    - Lehetővé teszi a konténerek közötti kommunikációt
+   - Az Adminer ehhez a hálózathoz csatlakozik, hogy a publikált portja elérhető legyen a host-ról
 
 2. **Backend Hálózat (internal mód)**
    - NEM elérhető a host-ról
    - Tartalmazza: PHP-FPM, MySQL, Adminer
    - Elkülönített adatbázis hozzáférés
    - Biztonság: A MySQL nem érhető el közvetlenül kívülről
+   - Az Adminer ehhez a hálózathoz is csatlakozik, hogy elérje a MySQL-t (amely csak backend)
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -122,7 +127,7 @@ A LAMP stack kettős hálózati architektúrát használ a biztonság érdekébe
 │                                                       │
 │   Port 80 ──────────┐                                │
 │   Port 443 ─────────┼──▶ Frontend Network            │
-│   Port 8080 ────────┘     │                          │
+│   127.0.0.1:8080 ───┘     │  (Adminer, loopback only)│
 │                           │                          │
 │   ┌───────────────────────▼─────────────────┐        │
 │   │  Frontend Network (bridge)              │        │
@@ -266,6 +271,7 @@ A LAMP stack kettős hálózati architektúrát használ a biztonság érdekébe
 **Access Control:**
 - Nginx health endpoint (no authentication)
 - Adminer for development only (remove in production)
+- Adminer port bound to 127.0.0.1 (loopback) so the DB admin UI is not exposed to untrusted networks
 - Scripts require container exec access
 
 **Magyar:**
@@ -288,6 +294,7 @@ A LAMP stack kettős hálózati architektúrát használ a biztonság érdekébe
 **Hozzáférés Vezérlés:**
 - Nginx health végpont (nincs hitelesítés)
 - Adminer csak fejlesztéshez (távolítsd el produkciós környezetből)
+- Az Adminer port a 127.0.0.1-hez (loopback) van kötve, így az adatbázis admin felület nincs kitéve a nem megbízható hálózatoknak
 - A scriptek konténer exec hozzáférést igényelnek
 
 ### Monitoring Architecture | Figyelési Architektúra
@@ -369,7 +376,7 @@ health-check.sh script ────────┬──▶ Nginx: curl health e
 | Nginx | nginx:1.25-alpine | Alpine-based | ~40MB | Web server |
 | PHP-FPM | Custom Debian | Bookworm-slim | ~500MB | App server |
 | MySQL | mysql:8.0 | Official | ~580MB | Database |
-| Adminer | adminer:latest | Official | ~90MB | DB admin |
+| Adminer | adminer:4.8.1 | Official | ~90MB | DB admin |
 
 ### Bash Scripts Technology | Bash Script Technológia
 
@@ -408,12 +415,14 @@ health-check.sh script ────────┬──▶ Nginx: curl health e
 - Production best practice
 - Defense in depth strategy
 - Demonstrates network security understanding
+- Note: Adminer joins the backend network only to reach MySQL; it is never reachable from the host through the internal network, its UI is published solely via its loopback-bound frontend port (127.0.0.1:8080)
 
 **Magyar:**
 - Biztonság: Az adatbázis nincs kitéve a host-nak
 - Produkciós legjobb gyakorlat
 - Többrétegű védelmi stratégia
 - Hálózati biztonsági ismeretet mutat
+- Megjegyzés: Az Adminer csak a MySQL elérése miatt csatlakozik a backend hálózathoz; a belső hálózaton keresztül soha nem érhető el a host-ról, a felülete kizárólag a loopback-hez kötött frontend portján (127.0.0.1:8080) van publikálva
 
 ### Why Shared nginx_logs Volume? | Miért Megosztott nginx_logs Kötet?
 
