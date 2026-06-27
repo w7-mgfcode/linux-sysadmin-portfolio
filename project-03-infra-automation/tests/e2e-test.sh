@@ -496,8 +496,9 @@ mkdir -p /tmp/integration-test
 echo "integration test" > /tmp/integration-test/data.txt
 rm -rf /tmp/integration-backup
 /scripts/backup-manager.sh full /tmp/integration-test /tmp/integration-backup >/dev/null 2>&1
-# Locate the created archive directly (avoids parsing colored log output)
-BACKUP_FILE=$(ls -t /tmp/integration-backup/*.tar.gz 2>/dev/null | head -1)
+# Locate the created archive directly (avoids parsing colored log output, and
+# uses compgen glob expansion instead of parsing `ls`)
+BACKUP_FILE=$(compgen -G "/tmp/integration-backup/*.tar.gz" | head -1)
 if [[ -n "$BACKUP_FILE" ]]; then
     /scripts/backup-manager.sh verify "$BACKUP_FILE"
 else
