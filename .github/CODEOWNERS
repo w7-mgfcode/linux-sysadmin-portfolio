@@ -1,0 +1,9 @@
+# Code owners for the Linux Sysadmin Portfolio.
+# These owners are requested for review automatically on matching changes.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo.
+*                       @w7-mgfcode
+
+# CI / repository meta.
+/.github/               @w7-mgfcode
