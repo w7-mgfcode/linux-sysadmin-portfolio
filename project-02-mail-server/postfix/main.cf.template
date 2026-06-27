@@ -10,6 +10,11 @@ myorigin = $mydomain
 mydestination = localhost
 mynetworks = 127.0.0.0/8 172.16.0.0/12 192.168.0.0/16
 
+# Container logging: no syslog daemon in the image, so log to stdout via
+# postlogd (auto-started by `postfix start-fg`). Makes logs visible in
+# `docker logs` instead of being silently discarded.
+maillog_file = /dev/stdout
+
 # Banner
 smtpd_banner = $myhostname ESMTP
 
@@ -116,13 +121,20 @@ smtpd_data_restrictions =
     reject_unauth_pipelining
 
 #===============================================================================
-# SpamAssassin Integration (Milter)
+# SpamAssassin Integration
 #===============================================================================
-# Milter configuration
+# NOTE: SpamAssassin's spamd (port 783) speaks the SPAMC/SPAMD protocol, which
+# is NOT the milter protocol. Pointing smtpd_milters at spamd:783 makes the
+# milter handshake fail on every connection ("unreasonable packet length"),
+# which aborts the SMTP session BEFORE the 220 greeting — breaking all mail.
+# Proper milter integration requires spamass-milter (a separate bridge daemon)
+# on a real milter socket. That is not deployed here, so the milter wiring is
+# disabled to keep SMTP functional. SpamAssassin remains reachable via spamc
+# for content-filter / after-queue scanning.
 milter_default_action = accept
 milter_protocol = 6
-smtpd_milters = inet:spamassassin:783
-non_smtpd_milters = $smtpd_milters
+# smtpd_milters = inet:spamass-milter:<port>   # enable once spamass-milter is added
+# non_smtpd_milters = $smtpd_milters
 
 #===============================================================================
 # Message Size Limits

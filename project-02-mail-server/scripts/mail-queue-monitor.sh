@@ -30,11 +30,14 @@ set -euo pipefail
 #===============================================================================
 # Configuration
 #===============================================================================
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly SCRIPT_NAME="$(basename "$0")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+SCRIPT_NAME="$(basename "$0")"
+readonly SCRIPT_NAME
 
 # Source common library
-# shellcheck source=./lib/common.sh
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
 # Queue thresholds
@@ -332,7 +335,8 @@ EOF
 generate_report() {
     ensure_directory "$REPORT_DIR"
 
-    local report_file="${REPORT_DIR}/mail-queue-$(timestamp_filename).json"
+    local report_file
+    report_file="${REPORT_DIR}/mail-queue-$(timestamp_filename).json"
     local latest_link="${REPORT_DIR}/mail-queue-latest.json"
 
     cat > "$report_file" << EOF
@@ -345,7 +349,7 @@ generate_report() {
         "active": ${queue_stats[active]},
         "deferred": ${queue_stats[deferred]},
         "hold": ${queue_stats[hold]},
-        "size_mb": $(bytes_to_mb ${queue_stats[size_bytes]}),
+        "size_mb": $(bytes_to_mb "${queue_stats[size_bytes]}"),
         "oldest_hours": ${queue_stats[oldest_hours]}
     },
     "thresholds": {

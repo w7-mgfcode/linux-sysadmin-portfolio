@@ -30,12 +30,10 @@ set -euo pipefail
 #===============================================================================
 # Configuration
 #===============================================================================
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-
-# Test configuration
-readonly TIMEOUT="${TEST_TIMEOUT:-10}"
-readonly QUICK_MODE="${1:-}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+readonly PROJECT_ROOT
 
 # Colors for output
 readonly RED='\033[0;31m'

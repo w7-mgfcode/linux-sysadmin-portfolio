@@ -28,9 +28,11 @@ set -euo pipefail
 #===============================================================================
 # Configuration
 #===============================================================================
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
 
 # Source common library
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=./lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
@@ -58,23 +60,8 @@ declare -A top_spammers=()
 
 parse_spam_logs() {
     local period="${1:-today}"
-    local date_filter=""
 
     log_info "Parsing SpamAssassin logs ($period)..."
-
-    # Determine date filter
-    case "$period" in
-        today)
-            date_filter=$(date +"%b %d")
-            ;;
-        week)
-            # Last 7 days - more complex, parse all recent
-            date_filter=""
-            ;;
-        *)
-            date_filter=$(date +"%b %d")
-            ;;
-    esac
 
     # Parse mail log for SpamAssassin entries
     if [[ ! -f "$MAIL_LOG" ]]; then
@@ -119,16 +106,18 @@ parse_spam_logs() {
 categorize_score() {
     local score="$1"
 
+    # Use literal string keys with explicit assignment: inside (( )) the "+" in
+    # the "10+" subscript breaks parsing (SC1105), so avoid arithmetic subscripts.
     if (( $(echo "$score < 1" | bc -l) )); then
-        ((score_buckets[0-1]++))
+        score_buckets["0-1"]=$(( ${score_buckets["0-1"]:-0} + 1 ))
     elif (( $(echo "$score < 2" | bc -l) )); then
-        ((score_buckets[1-2]++))
+        score_buckets["1-2"]=$(( ${score_buckets["1-2"]:-0} + 1 ))
     elif (( $(echo "$score < 5" | bc -l) )); then
-        ((score_buckets[2-5]++))
+        score_buckets["2-5"]=$(( ${score_buckets["2-5"]:-0} + 1 ))
     elif (( $(echo "$score < 10" | bc -l) )); then
-        ((score_buckets[5-10]++))
+        score_buckets["5-10"]=$(( ${score_buckets["5-10"]:-0} + 1 ))
     else
-        ((score_buckets[10+]++))
+        score_buckets["10+"]=$(( ${score_buckets["10+"]:-0} + 1 ))
     fi
 }
 
@@ -225,7 +214,8 @@ EOF
 generate_json_report() {
     ensure_directory "$REPORT_DIR"
 
-    local report_file="${REPORT_DIR}/spam-report-$(timestamp_filename).json"
+    local report_file
+    report_file="${REPORT_DIR}/spam-report-$(timestamp_filename).json"
     local latest_link="${REPORT_DIR}/spam-report-latest.json"
 
     # Build top spammers JSON array

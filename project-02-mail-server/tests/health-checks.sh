@@ -18,6 +18,7 @@ else
     RED=''
     GREEN=''
     YELLOW=''
+    # shellcheck disable=SC2034  # part of color palette
     BLUE=''
     NC=''
 fi
@@ -119,16 +120,14 @@ test_mysql_connectivity() {
 test_mysql_schema() {
     log INFO "Test 3: Validating MySQL database schema..."
 
-    local mysql_user="${MYSQL_USER:-mailuser}"
-    local mysql_password="${MYSQL_PASSWORD:-mail_secure_changeme}"
-    local mysql_database="${MYSQL_DATABASE:-mailserver}"
-
+    # Use the mysql container's own root credentials (read inside the container)
+    # so the check never depends on host-side env / .env defaults matching.
     local tables=("virtual_domains" "virtual_users" "virtual_aliases")
     local all_tables_exist=true
 
     for table in "${tables[@]}"; do
-        if docker compose exec -T -e MYSQL_PWD="${mysql_password}" mysql mysql -u"${mysql_user}" "${mysql_database}" \
-            -e "DESCRIBE ${table};" > /dev/null 2>&1; then
+        if docker compose exec -T mysql sh -c \
+            "mysql -uroot -p\"\$MYSQL_ROOT_PASSWORD\" \"\$MYSQL_DATABASE\" -e 'DESCRIBE ${table};'" > /dev/null 2>&1; then
             test_pass "Table ${table} exists"
         else
             test_fail "Table ${table} missing"
@@ -234,30 +233,30 @@ test_ssl_certificates() {
 
     local all_certs_present=true
 
-    # Check Postfix SSL certificates
-    if docker compose exec -T postfix test -f /etc/mail/certs/mail.crt 2>/dev/null; then
+    # Check Postfix SSL certificates (paths per smtpd_tls_cert_file/key_file)
+    if docker compose exec -T postfix test -f /etc/mail/certs/mail-cert.pem 2>/dev/null; then
         test_pass "Postfix SSL certificate present"
     else
         test_fail "Postfix SSL certificate missing"
         all_certs_present=false
     fi
 
-    if docker compose exec -T postfix test -f /etc/mail/certs/mail.key 2>/dev/null; then
+    if docker compose exec -T postfix test -f /etc/mail/certs/mail-key.pem 2>/dev/null; then
         test_pass "Postfix SSL key present"
     else
         test_fail "Postfix SSL key missing"
         all_certs_present=false
     fi
 
-    # Check Dovecot SSL certificates
-    if docker compose exec -T dovecot test -f /etc/mail/certs/mail.crt 2>/dev/null; then
+    # Check Dovecot SSL certificates (dovecot.pem cert + shared mail-key.pem)
+    if docker compose exec -T dovecot test -f /etc/mail/certs/dovecot.pem 2>/dev/null; then
         test_pass "Dovecot SSL certificate present"
     else
         test_fail "Dovecot SSL certificate missing"
         all_certs_present=false
     fi
 
-    if docker compose exec -T dovecot test -f /etc/mail/certs/mail.key 2>/dev/null; then
+    if docker compose exec -T dovecot test -f /etc/mail/certs/mail-key.pem 2>/dev/null; then
         test_pass "Dovecot SSL key present"
     else
         test_fail "Dovecot SSL key missing"
@@ -346,8 +345,8 @@ test_volume_mounts() {
 test_interservice_connectivity() {
     log INFO "Test 13: Testing inter-service connectivity..."
 
-    # Test Postfix -> MySQL
-    if docker compose exec -T postfix ping -c 1 mysql > /dev/null 2>&1; then
+    # Test Postfix -> MySQL (TCP to 3306; ping/ICMP isn't installed in slim images)
+    if docker compose exec -T postfix bash -c 'timeout 5 bash -c "exec 3<>/dev/tcp/mysql/3306"' > /dev/null 2>&1; then
         test_pass "Postfix can reach MySQL"
     else
         test_fail "Postfix cannot reach MySQL"
@@ -355,7 +354,7 @@ test_interservice_connectivity() {
     fi
 
     # Test Dovecot -> MySQL
-    if docker compose exec -T dovecot ping -c 1 mysql > /dev/null 2>&1; then
+    if docker compose exec -T dovecot bash -c 'timeout 5 bash -c "exec 3<>/dev/tcp/mysql/3306"' > /dev/null 2>&1; then
         test_pass "Dovecot can reach MySQL"
     else
         test_fail "Dovecot cannot reach MySQL"

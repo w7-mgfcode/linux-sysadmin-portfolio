@@ -30,10 +30,12 @@ set -euo pipefail
 #===============================================================================
 # Configuration
 #===============================================================================
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
 
 # Source common library
-# shellcheck source=./lib/common.sh
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=lib/common.sh
 source "${SCRIPT_DIR}/lib/common.sh"
 
 readonly BACKUP_DIR="${BACKUP_DIR:-/backups}"
@@ -50,8 +52,10 @@ readonly REMOTE_SYNC_ENABLED="${REMOTE_SYNC:-false}"
 readonly REMOTE_DEST="${REMOTE_DEST:-}"
 
 # Backup metadata
-readonly BACKUP_TIMESTAMP=$(timestamp_filename)
-readonly BACKUP_DATE=$(date +%Y%m%d)
+BACKUP_TIMESTAMP=$(timestamp_filename)
+readonly BACKUP_TIMESTAMP
+BACKUP_DATE=$(date +%Y%m%d)
+readonly BACKUP_DATE
 
 #===============================================================================
 # Backup Functions
