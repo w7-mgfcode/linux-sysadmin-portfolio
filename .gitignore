@@ -80,3 +80,4 @@ build/
 
 # Agent/assistant local files (not tracked)
 .claude/
+.agents/
