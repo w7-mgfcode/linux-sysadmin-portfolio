@@ -79,7 +79,7 @@ services:
       start_period: 30s
 
   adminer:
-    image: adminer:latest
+    image: adminer:4.8.1
     container_name: lamp-adminer
     restart: unless-stopped
     ports:
@@ -87,11 +87,13 @@ services:
     environment:
       - ADMINER_DEFAULT_SERVER=mysql
     networks:
-      - backend
+      - frontend  # host-facing: publishes 8080 (backend is internal, can't expose ports)
+      - backend   # reach mysql
     depends_on:
       - mysql
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      # adminer image ships no curl/wget; use bundled PHP to probe the app
+      test: ["CMD-SHELL", "php -r 'exit(@file_get_contents(\"http://localhost:8080/\")===false?1:0);'"]
       interval: 30s
       timeout: 10s
       retries: 3

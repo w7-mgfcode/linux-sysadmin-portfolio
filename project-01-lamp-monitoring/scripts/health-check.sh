@@ -49,7 +49,9 @@ declare -A COLORS=(
 log() {
     local level=$1
     shift
-    echo -e "${COLORS[$level]}[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $*${COLORS[NC]}"
+    # Logs go to stderr so stdout carries only machine-readable values
+    # (check_* results and the JSON report) for safe command substitution.
+    echo -e "${COLORS[$level]}[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $*${COLORS[NC]}" >&2
 }
 
 #===============================================================================
@@ -191,7 +193,6 @@ main() {
         log "RED" "$failed service(s) are unhealthy"
     fi
 
-    echo ""
     log "BLUE" "JSON Report:"
     generate_report "$nginx_result" "$php_result" "$mysql_result" "$overall_status"
 
